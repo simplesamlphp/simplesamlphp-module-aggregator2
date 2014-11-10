@@ -41,105 +41,81 @@ The index for each item in the configuration array gives the identifier of the a
 
 The aggregator can be configured with the following options:
 
-`sources`
-:   Array which describes a source from which we should download metadata.
+* `sources`:   Array which describes a source from which we should download metadata.
 
-`cron.tag`
-:   Can be used to run periodical updates. It will only be useful when you have metadata caching enabled.
+* `cron.tag`:   Can be used to run periodical updates. It will only be useful when you have metadata caching enabled.
 
-`cache.directory`
-:   The path to a directory where the aggregator will cache downloaded and generated metadata.
+* `cache.directory`:   The path to a directory where the aggregator will cache downloaded and generated metadata.
     This directory must be writable by the web server.
 
-`cache.generated`
-:   The number of seconds the generated metadata will be cached for.
+* `cache.generated`:   The number of seconds the generated metadata will be cached for.
+*Note*: generated metadata will not be cached if this option is unset.
 
-:    *Note*: generated metadata will not be cached if this option is unset.
+* `valid.length`:   The number of seconds the generated metadata should be valid for.
+This is used to set the `validUntil` attribute on the generated metadata.
+Defaults to one week..
+*Note*: The value of the `cache.generated` option must be smaller than the value here, otherwise you would end up
+returning outdated metadata.
 
-`valid.length`
-:   The number of seconds the generated metadata should be valid for.
-    This is used to set the `validUntil` attribute on the generated metadata.
-    Defaults to one week..
+* `ssl.cafile`:   This option enables validation of the server certificate when fetching metadata over HTTPS. It must be a path
+pointing to a PEM file which contains one or more valid CA certificates. The path can be either absolute or
+relative to the `cert` directory.
+*Note*: This option can be overridden for each metadata source.
 
-:   *Note*: The value of the `cache.generated` option must be smaller than the value here, otherwise you would end up
-    returning outdated metadata.
+* `sign.privatekey`:   The private key that should be used to sign the resulting metadata, in PEM format. The path to the private key can
+be either absolute or relative to the `cert` directory. Skip this option or set it to `NULL` if you don't want to
+sign the generated metadata.
 
-`ssl.cafile`
-:   This option enables validation of the server certificate when fetching metadata over HTTPS. It must be a path
-    pointing to a PEM file which contains one or more valid CA certificates. The path can be either absolute or
-    relative to the `cert` directory.
+* `sign.privatekey_pass`:   The password used to encrypt the private key. If this option is unset, the private key is assumed to be unencrypted.
 
-:   *Note*: This option can be overridden for each metadata source.
+* `sign.certificate`:   The certificate that contains the public key corresponding to the private key, in PEM format. The path to the
+certificate can be either absolute or relative to the `cert` directory.
+*Note*: This certificate will be included in the generated metadata.
 
-`sign.privatekey`
-:   The private key that should be used to sign the resulting metadata, in PEM format. The path to the private key can
-    be either absolute or relative to the `cert` directory. Skip this option or set it to `NULL` if you don't want to
-    sign the generated metadata.
+* `RegistrationInfo`:   Allows to specify information about the registrar of the generated metadata. Please refer to the
+[MDRPI extension](https://simplesamlphp.org/docs/stable/simplesamlphp-metadata-extensions-rpi) document for further information.
 
-`sign.privatekey_pass`
-:   The password used to encrypt the private key. If this option is unset, the private key is assumed to be unencrypted.
+* `exclude`:   Allows to exclude one or more entities from the generated metadata, represented by their entity IDs. Can be either
+a string with the entity ID of a single entity, or an array of strings with all the entity IDs to exclude from the result.
+*Note*: this option will not exclude the entities from the cached metadata sources. It will only act as a default
+configuration for the generation of the metadata aggregate, and therefore can be overridden per request.
 
-`sign.certificate`
-:   The certificate that contains the public key corresponding to the private key, in PEM format. The path to the
-    certificate can be either absolute or relative to the `cert` directory.
+* `filter`:   One or more sets representing the types of entities that should be included in the generated metadata. Filtering
+will be performed depending on the role of the entity, as well as the protocols it supports. Can be either a string
+with the set of entities desired, or an array of strings with all the different sets to filter by. The following
+sets are available:
 
-:   *Note*: This certificate will be included in the generated metadata.
+    * `saml2`: all the entities that support the SAML 2.0 protocol.
 
-`RegistrationInfo`
-:   Allows to specify information about the registrar of the generated metadata. Please refer to the
-    [MDRPI extension](./simplesamlphp-metadata-extensions-rpi) document for further information.
+    * `shib13`: all the entities that support the SAML 1.1 protocol.
 
-`exclude`
-:   Allows to exclude one or more entities from the generated metadata, represented by their entity IDs. Can be either
-    a string with the entity ID of a single entity, or an array of strings with all the entity IDs to exclude from
-    the result.
+    * `saml20-idp`: all the identity providers that support the SAML 2.0 protocol.
 
-:   *Note*: this option will not exclude the entities from the cached metadata sources. It will only act as a default
-    configuration for the generation of the metadata aggregate, and therefore can be overridden per request.
+    * `saml20-sp`: all the service providers that support the SAML 2.0 protocol.
 
-`filter`
-:   One or more sets representing the types of entities that should be included in the generated metadata. Filtering
-    will be performed depending on the role of the entity, as well as the protocols it supports. Can be either a string
-    with the set of entities desired, or an array of strings with all the different sets to filter by. The following
-    sets are available:
+    * `saml20-aa`: all the attribute authorities that support the SAML 2.0 protocol.
 
-: * `saml2`: all the entities that support the SAML 2.0 protocol.
+    * `shib13-idp`: all the identity providers that support the SAML 1.1 protocol.
 
-: * `shib13`: all the entities that support the SAML 1.1 protocol.
+    * `shib13-sp`: all the service providers that support the SAML 1.1 protocol.
 
-: * `saml20-idp`: all the identity providers that support the SAML 2.0 protocol.
+    * `shib13-aa`: all the attribute authorities that support the SAML 1.1 protocol.
 
-: * `saml20-sp`: all the service providers that support the SAML 2.0 protocol.
-
-: * `saml20-aa`: all the attribute authorities that support the SAML 2.0 protocol.
-
-: * `shib13-idp`: all the identity providers that support the SAML 1.1 protocol.
-
-: * `shib13-sp`: all the service providers that support the SAML 1.1 protocol.
-
-: * `shib13-aa`: all the attribute authorities that support the SAML 1.1 protocol.
-
-:   *Note*: this option will not filter the entities in the cached metadata sources. It will only act as a default
-    configuration for the generation of the metadata aggregate, and therefore can be overriden per request.
+*Note*: this option will not filter the entities in the cached metadata sources. It will only act as a default
+configuration for the generation of the metadata aggregate, and therefore can be overriden per request.
 
 
 ### Aggregator source configuration
 
-`url`
-:   The URL the metadata should be fetched from.
+* `url`:   The URL the metadata should be fetched from.
 
-`ssl.cafile`
-:   This option enables validation of the server certificate when fetching metadata over HTTPS. It must be a path
-    pointing to a PEM file which contains one or more valid CA certificates. The path can be either absolute or
-    relative to the `cert` directory.
+* `ssl.cafile`:   This option enables validation of the server certificate when fetching metadata over HTTPS. It must be a path
+pointing to a PEM file which contains one or more valid CA certificates. The path can be either absolute or relative to the `cert` directory.
+*Note*: This option overrides the option with the same name in the root configuration for the an aggregator.
 
-:   *Note*: This option overrides the option with the same name in the root configuration for the an aggregator.
-
-`cert`
-:   The certificate that should be used to check the signature of this metadata document, in PEM format. The path to
-    the certificate can be either absolute or relative to the `cert` directory.
-
-:   *Note*: This cannot be a CA certificate. Validation against CA certificates (PKI) is not supported.
+* `cert`:   The certificate that should be used to check the signature of this metadata document, in PEM format. The path to
+the certificate can be either absolute or relative to the `cert` directory.
+*Note*: This cannot be a CA certificate. Validation against CA certificates (PKI) is not supported.
 
 
 Retrieving aggregated metadata
@@ -156,14 +132,11 @@ In general, metadata aggregates can be downloaded from the following location:
 where the *aggregator id* is the identifier you used as an index for the aggregator configuration array. Additionally,
 you can use the following parameters to customize the resulting metadata aggregate:
 
-`exclude`
-:   Allows to exclude one or more entities from the generated metadata, represented by their entity IDs. If you need to
-    specify more than one entity, use a comma-separated list of entity IDs.
+* `exclude`:   Allows to exclude one or more entities from the generated metadata, represented by their entity IDs. If you need to
+specify more than one entity, use a comma-separated list of entity IDs.
 
-`filter`
-:   Allows to filter by sets specifying the type of entities or the protocols they support. If you need to specify more
-    than one set, use a comma-separated list. See the configuration option with the same name to get a list of all
-    the sets supported.
+* `filter`:   Allows to filter by sets specifying the type of entities or the protocols they support. If you need to specify more
+than one set, use a comma-separated list. See the configuration option with the same name to get a list of all the sets supported.
 
 
 Asynchronous metadata updates
