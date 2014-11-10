@@ -49,15 +49,18 @@ The aggregator can be configured with the following options:
     This directory must be writable by the web server.
 
 * `cache.generated`:   The number of seconds the generated metadata will be cached for.
+
     *Note*: generated metadata will not be cached if this option is unset.
 
 * `valid.length`:   The number of seconds the generated metadata should be valid for.
     This is used to set the `validUntil` attribute on the generated metadata. Defaults to one week.
+
     *Note*: The value of the `cache.generated` option must be smaller than the value here, otherwise you would end up
 returning outdated metadata.
 
 * `ssl.cafile`:   This option enables validation of the server certificate when fetching metadata over HTTPS. It must be a path
 pointing to a PEM file which contains one or more valid CA certificates. The path can be either absolute or relative to the `cert` directory.
+
     *Note*: This option can be overridden for each metadata source.
 
 * `sign.privatekey`:   The private key that should be used to sign the resulting metadata, in PEM format. The path to the private key can
@@ -67,6 +70,7 @@ be either absolute or relative to the `cert` directory. Skip this option or set 
 
 * `sign.certificate`:   The certificate that contains the public key corresponding to the private key, in PEM format. The path to the
 certificate can be either absolute or relative to the `cert` directory.
+
     *Note*: This certificate will be included in the generated metadata.
 
 * `RegistrationInfo`:   Allows to specify information about the registrar of the generated metadata. Please refer to the
@@ -74,6 +78,7 @@ certificate can be either absolute or relative to the `cert` directory.
 
 * `exclude`:   Allows to exclude one or more entities from the generated metadata, represented by their entity IDs. Can be either
 a string with the entity ID of a single entity, or an array of strings with all the entity IDs to exclude from the result.
+
     *Note*: this option will not exclude the entities from the cached metadata sources. It will only act as a default
 configuration for the generation of the metadata aggregate, and therefore can be overridden per request.
 
@@ -108,10 +113,12 @@ configuration for the generation of the metadata aggregate, and therefore can be
 
 * `ssl.cafile`:   This option enables validation of the server certificate when fetching metadata over HTTPS. It must be a path
 pointing to a PEM file which contains one or more valid CA certificates. The path can be either absolute or relative to the `cert` directory.
+
     *Note*: This option overrides the option with the same name in the root configuration for the an aggregator.
 
 * `cert`:   The certificate that should be used to check the signature of this metadata document, in PEM format. The path to
 the certificate can be either absolute or relative to the `cert` directory.
+
     *Note*: This cannot be a CA certificate. Validation against CA certificates (PKI) is not supported.
 
 
