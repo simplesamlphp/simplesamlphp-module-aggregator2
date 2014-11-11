@@ -8,6 +8,19 @@
 class sspmod_aggregator2_Aggregator {
 
 	/**
+	 * The list of signature algorithms supported by the aggregator.
+	 *
+	 * @var array
+	 */
+	public static $SUPPORTED_SIGNATURE_ALGORITHMS = array(
+		XMLSecurityKey::RSA_SHA1,
+		XMLSecurityKey::RSA_SHA256,
+		XMLSecurityKey::RSA_SHA384,
+		XMLSecurityKey::RSA_SHA512,
+	);
+
+
+	/**
 	 * The ID of this aggregator.
 	 *
 	 * @var string
@@ -127,6 +140,14 @@ class sspmod_aggregator2_Aggregator {
 
 
 	/**
+	 * The algorithm to use for metadata signing.
+	 *
+	 * @var string|NULL
+	 */
+	protected $signAlg;
+
+
+	/**
 	 * The CA certificate file that should be used to validate https-connections.
 	 *
 	 * @var string|NULL
@@ -217,6 +238,10 @@ class sspmod_aggregator2_Aggregator {
 			}
 		}
 
+		$this->signAlg = $config->getString('sign.algorithm', XMLSecurityKey::RSA_SHA1);
+		if (!in_array($this->signAlg, self::$SUPPORTED_SIGNATURE_ALGORITHMS)) {
+			throw new SimpleSAML_Error_Exception('Unsupported signature algorithm '. var_export($this->signAlg, TRUE));
+		}
 
 		$this->sslCAFile = $config->getString('ssl.cafile', NULL);
 
@@ -405,7 +430,7 @@ class sspmod_aggregator2_Aggregator {
 			return;
 		}
 
-		$privateKey = new XMLSecurityKey(XMLSecurityKey::RSA_SHA1, array('type' => 'private'));
+		$privateKey = new XMLSecurityKey($this->signAlg, array('type' => 'private'));
 		if ($this->signKeyPass !== NULL) {
 			$privateKey->passphrase = $this->signKeyPass;
 		}
