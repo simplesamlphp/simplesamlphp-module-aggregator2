@@ -446,6 +446,34 @@ class sspmod_aggregator2_Aggregator {
 
 
 	/**
+	 * Recursively browse the children of an EntitiesDescriptor element looking for EntityDescriptor elements, and
+	 * return an array containing all of them.
+	 *
+	 * @param SAML2_XML_md_EntitiesDescriptor $entity The source EntitiesDescriptor that holds the entities to extract.
+	 *
+	 * @return array An array containing all the EntityDescriptors found.
+	 */
+	private static function extractEntityDescriptors($entity) {
+		assert('$entity instanceof SAML2_XML_md_EntitiesDescriptor');
+
+		if (!($entity instanceof SAML2_XML_md_EntitiesDescriptor)) {
+			return array();
+		}
+
+		$results = array();
+		foreach ($entity->children as $child) {
+			if ($child instanceof SAML2_XML_md_EntityDescriptor) {
+				$results[] = $child;
+				continue;
+			}
+
+			$results = array_merge($results, self::extractEntityDescriptors($child));
+		}
+		return $results;
+	}
+
+
+	/**
 	 * Retrieve all entities as an EntitiesDescriptor.
 	 *
 	 * @return SAML2_XML_md_EntitiesDescriptor  The entities.
@@ -481,9 +509,14 @@ class sspmod_aggregator2_Aggregator {
 			if ($m === NULL) {
 				continue;
 			}
-			$ret->children[] = $m;
+			if ($m instanceof SAML2_XML_md_EntityDescriptor) {
+				$ret->children[] = $m;
+			} elseif ($m instanceof SAML2_XML_md_EntitiesDescriptor) {
+				$ret->children = array_merge($ret->children, self::extractEntityDescriptors($m));
+			}
 		}
 
+		$ret->children = array_unique($ret->children, SORT_REGULAR);
 		$ret->validUntil = $now + $this->validLength;
 
 		return $ret;
