@@ -73,6 +73,19 @@ certificate can be either absolute or relative to the `cert` directory.
 
     *Note*: This certificate will be included in the generated metadata.
 
+* `sign.algorithm`:   The algorithm that should be used to sign the resulting metadata. The following algorithms are supported:
+
+    * `http://www.w3.org/2000/09/xmldsig#rsa-sha1`
+
+    * `http://www.w3.org/2001/04/xmldsig-more#rsa-sha256`
+
+    * `http://www.w3.org/2001/04/xmldsig-more#rsa-sha384`
+
+    * `http://www.w3.org/2001/04/xmldsig-more#rsa-sha512`
+
+    *Note*: this option defaults to `http://www.w3.org/2000/09/xmldsig#rsa-sha1` for backwards compatibility. However, it is
+    recommended to use another algorithm as SHA1 is considered broken.
+
 * `RegistrationInfo`:   Allows to specify information about the registrar of the generated metadata. Please refer to the
 [MDRPI extension](https://simplesamlphp.org/docs/stable/simplesamlphp-metadata-extensions-rpi) document for further information.
 

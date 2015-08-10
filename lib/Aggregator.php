@@ -8,6 +8,19 @@
 class sspmod_aggregator2_Aggregator {
 
 	/**
+	 * The list of signature algorithms supported by the aggregator.
+	 *
+	 * @var array
+	 */
+	public static $SUPPORTED_SIGNATURE_ALGORITHMS = array(
+		XMLSecurityKey::RSA_SHA1,
+		XMLSecurityKey::RSA_SHA256,
+		XMLSecurityKey::RSA_SHA384,
+		XMLSecurityKey::RSA_SHA512,
+	);
+
+
+	/**
 	 * The ID of this aggregator.
 	 *
 	 * @var string
@@ -127,6 +140,14 @@ class sspmod_aggregator2_Aggregator {
 
 
 	/**
+	 * The algorithm to use for metadata signing.
+	 *
+	 * @var string|NULL
+	 */
+	protected $signAlg;
+
+
+	/**
 	 * The CA certificate file that should be used to validate https-connections.
 	 *
 	 * @var string|NULL
@@ -217,6 +238,10 @@ class sspmod_aggregator2_Aggregator {
 			}
 		}
 
+		$this->signAlg = $config->getString('sign.algorithm', XMLSecurityKey::RSA_SHA1);
+		if (!in_array($this->signAlg, self::$SUPPORTED_SIGNATURE_ALGORITHMS)) {
+			throw new SimpleSAML_Error_Exception('Unsupported signature algorithm '. var_export($this->signAlg, TRUE));
+		}
 
 		$this->sslCAFile = $config->getString('ssl.cafile', NULL);
 
@@ -405,7 +430,7 @@ class sspmod_aggregator2_Aggregator {
 			return;
 		}
 
-		$privateKey = new XMLSecurityKey(XMLSecurityKey::RSA_SHA1, array('type' => 'private'));
+		$privateKey = new XMLSecurityKey($this->signAlg, array('type' => 'private'));
 		if ($this->signKeyPass !== NULL) {
 			$privateKey->passphrase = $this->signKeyPass;
 		}
@@ -417,6 +442,34 @@ class sspmod_aggregator2_Aggregator {
 		if ($this->signCert !== NULL) {
 			$element->setCertificates(array($this->signCert));
 		}
+	}
+
+
+	/**
+	 * Recursively browse the children of an EntitiesDescriptor element looking for EntityDescriptor elements, and
+	 * return an array containing all of them.
+	 *
+	 * @param SAML2_XML_md_EntitiesDescriptor $entity The source EntitiesDescriptor that holds the entities to extract.
+	 *
+	 * @return array An array containing all the EntityDescriptors found.
+	 */
+	private static function extractEntityDescriptors($entity) {
+		assert('$entity instanceof SAML2_XML_md_EntitiesDescriptor');
+
+		if (!($entity instanceof SAML2_XML_md_EntitiesDescriptor)) {
+			return array();
+		}
+
+		$results = array();
+		foreach ($entity->children as $child) {
+			if ($child instanceof SAML2_XML_md_EntityDescriptor) {
+				$results[] = $child;
+				continue;
+			}
+
+			$results = array_merge($results, self::extractEntityDescriptors($child));
+		}
+		return $results;
 	}
 
 
@@ -456,9 +509,14 @@ class sspmod_aggregator2_Aggregator {
 			if ($m === NULL) {
 				continue;
 			}
-			$ret->children[] = $m;
+			if ($m instanceof SAML2_XML_md_EntityDescriptor) {
+				$ret->children[] = $m;
+			} elseif ($m instanceof SAML2_XML_md_EntitiesDescriptor) {
+				$ret->children = array_merge($ret->children, self::extractEntityDescriptors($m));
+			}
 		}
 
+		$ret->children = array_unique($ret->children, SORT_REGULAR);
 		$ret->validUntil = $now + $this->validLength;
 
 		return $ret;
