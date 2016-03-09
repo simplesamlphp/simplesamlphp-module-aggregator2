@@ -3,7 +3,7 @@
 /**
  * Class for loading metadata from files and URLs.
  *
- * @package simpleSAMLphp
+ * @package SimpleSAMLphp
  */
 class sspmod_aggregator2_EntitySource {
 
@@ -172,7 +172,7 @@ class sspmod_aggregator2_EntitySource {
 				throw new SimpleSAML_Error_Exception('Error loading certificate from ' . var_export($file, TRUE));
 			}
 
-			/* Extract the public key from the certificate for validation. */
+			// Extract the public key from the certificate for validation
 			$key = new XMLSecurityKey(XMLSecurityKey::RSA_SHA1, array('type'=>'public'));
 			$key->loadKey($file, TRUE);
 
@@ -202,7 +202,7 @@ class sspmod_aggregator2_EntitySource {
 			return;
 		}
 
-		$expires = time() + 24*60*60; /* Default expires in one day. */
+		$expires = time() + 24*60*60; // Default expires in one day
 
 		if ($this->metadata->validUntil !== NULL && $this->metadata->validUntil < $expires) {
 			$expires = $this->metadata->validUntil;

@@ -1,6 +1,6 @@
 <?php
 
-/* This is the configuration file for the aggregator2-module. */
+// This is the configuration file for the aggregator2-module
 $config = array(
 
 	/*
@@ -10,7 +10,7 @@ $config = array(
 	 */
 	'example' => array(
 
-		/* 'sources' is an array with the places we want to fetch metadata from. */
+		// 'sources' is an array with the places we want to fetch metadata from
 		'sources' => array(
 			/* Metadata validated by the https-certificate of the server. */
 			array(
