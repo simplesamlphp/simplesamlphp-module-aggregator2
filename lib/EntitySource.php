@@ -110,13 +110,13 @@ class sspmod_aggregator2_EntitySource {
 	 */
 	private function downloadMetadata() {
 
-		SimpleSAML_Logger::debug($this->logLoc . 'Downloading metadata from ' .
+		SimpleSAML\Logger::debug($this->logLoc . 'Downloading metadata from ' .
 			var_export($this->url, TRUE));
 
 		$context = array('ssl' => array());
 		if ($this->sslCAFile !== NULL) {
 			$context['ssl']['cafile'] = SimpleSAML_Utilities::resolveCert($this->sslCAFile);
-			SimpleSAML_Logger::debug($this->logLoc . 'Validating https connection against CA certificate(s) found in ' .
+			SimpleSAML\Logger::debug($this->logLoc . 'Validating https connection against CA certificate(s) found in ' .
 				var_export($context['ssl']['cafile'], TRUE));
 			$context['ssl']['verify_peer'] = TRUE;
 			$context['ssl']['CN_match'] = parse_url($this->url, PHP_URL_HOST);
@@ -125,7 +125,7 @@ class sspmod_aggregator2_EntitySource {
 
 		$data = SimpleSAML_Utilities::fetch($this->url, $context);
 		if ($data === FALSE || $data === NULL) {
-			SimpleSAML_Logger::error($this->logLoc . 'Unable to load metadata from ' .
+			SimpleSAML\Logger::error($this->logLoc . 'Unable to load metadata from ' .
 				var_export($this->url, TRUE));
 			return NULL;
 		}
@@ -133,20 +133,20 @@ class sspmod_aggregator2_EntitySource {
 		$doc = new DOMDocument();
 		$res = $doc->loadXML($data);
 		if (!$res) {
-			SimpleSAML_Logger::error($this->logLoc . 'Error parsing XML from ' .
+			SimpleSAML\Logger::error($this->logLoc . 'Error parsing XML from ' .
 				var_export($this->url, TRUE));
 			return NULL;
 		}
 
 		$root = SAML2_Utils::xpQuery($doc->firstChild, '/saml_metadata:EntityDescriptor|/saml_metadata:EntitiesDescriptor');
 		if (count($root) === 0) {
-			SimpleSAML_Logger::error($this->logLoc . 'No <EntityDescriptor> or <EntitiesDescriptor> in metadata from ' .
+			SimpleSAML\Logger::error($this->logLoc . 'No <EntityDescriptor> or <EntitiesDescriptor> in metadata from ' .
 				var_export($this->url, TRUE));
 			return NULL;
 		}
 
 		if (count($root) > 1) {
-			SimpleSAML_Logger::error($this->logLoc . 'More than one <EntityDescriptor> or <EntitiesDescriptor> in metadata from ' .
+			SimpleSAML\Logger::error($this->logLoc . 'More than one <EntityDescriptor> or <EntitiesDescriptor> in metadata from ' .
 				var_export($this->url, TRUE));
 			return NULL;
 		}
@@ -159,7 +159,7 @@ class sspmod_aggregator2_EntitySource {
 				$md = new SAML2_XML_md_EntitiesDescriptor($root);
 			}
 		} catch (Exception $e) {
-			SimpleSAML_Logger::error($this->logLoc . 'Unable to parse metadata from ' .
+			SimpleSAML\Logger::error($this->logLoc . 'Unable to parse metadata from ' .
 				var_export($this->url, TRUE) . ': ' . $e->getMessage());
 			return NULL;
 		}
@@ -177,10 +177,10 @@ class sspmod_aggregator2_EntitySource {
 			$key->loadKey($file, TRUE);
 
 			if (!$md->validate($key)) {
-				SimpleSAML_Logger::error($this->logLoc . 'Error validating signature on metadata.');
+				SimpleSAML\Logger::error($this->logLoc . 'Error validating signature on metadata.');
 				return NULL;
 			}
-			SimpleSAML_Logger::debug($this->logLoc . 'Validated signature on metadata from ' . var_export($this->url, TRUE));
+			SimpleSAML\Logger::debug($this->logLoc . 'Validated signature on metadata from ' . var_export($this->url, TRUE));
 		}
 
 		return $md;
@@ -240,11 +240,11 @@ class sspmod_aggregator2_EntitySource {
 		$cacheFile = $this->aggregator->getCacheFile($this->cacheId);
 
 		if (!file_exists($cacheFile)) {
-			SimpleSAML_Logger::error($this->logLoc . 'No cached metadata available.');
+			SimpleSAML\Logger::error($this->logLoc . 'No cached metadata available.');
 			return NULL;
 		}
 
-		SimpleSAML_Logger::debug($this->logLoc . 'Using cached metadata from ' .
+		SimpleSAML\Logger::debug($this->logLoc . 'Using cached metadata from ' .
 			var_export($cacheFile, TRUE));
 
 		$metadata = file_get_contents($cacheFile);

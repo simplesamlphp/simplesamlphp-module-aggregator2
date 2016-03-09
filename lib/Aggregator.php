@@ -307,7 +307,7 @@ class sspmod_aggregator2_Aggregator {
 		try {
 			SimpleSAML_Utilities::writeFile($cacheFile, $data);
 		} catch (Exception $e) {
-			SimpleSAML_Logger::warning($this->logLoc . 'Unable to write to cache file ' . var_export($cacheFile, TRUE));
+			SimpleSAML\Logger::warning($this->logLoc . 'Unable to write to cache file ' . var_export($cacheFile, TRUE));
 			return;
 		}
 
@@ -320,7 +320,7 @@ class sspmod_aggregator2_Aggregator {
 		try {
 			SimpleSAML_Utilities::writeFile($expireFile, $expireInfo);
 		} catch (Exception $e) {
-			SimpleSAML_Logger::warning($this->logLoc . 'Unable to write expiration info to ' . var_export($expireFile, TRUE));
+			SimpleSAML\Logger::warning($this->logLoc . 'Unable to write expiration info to ' . var_export($expireFile, TRUE));
 		}
 
 	}
@@ -695,7 +695,7 @@ class sspmod_aggregator2_Aggregator {
 		$xml = $xml->ownerDocument->saveXML($xml);
 
 		if ($this->cacheGenerated !== NULL) {
-			SimpleSAML_Logger::debug($this->logLoc . 'Saving generated metadata to cache.');
+			SimpleSAML\Logger::debug($this->logLoc . 'Saving generated metadata to cache.');
 			$this->addCacheItem($this->cacheId, $xml, time() + $this->cacheGenerated, $this->cacheTag);
 		}
 
@@ -714,7 +714,7 @@ class sspmod_aggregator2_Aggregator {
 		if ($this->cacheGenerated !== NULL) {
 			$xml = $this->getCacheItem($this->cacheId, $this->cacheTag);
 			if ($xml !== NULL) {
-				SimpleSAML_Logger::debug($this->logLoc . 'Loaded generated metadata from cache.');
+				SimpleSAML\Logger::debug($this->logLoc . 'Loaded generated metadata from cache.');
 				return $xml;
 			}
 		}

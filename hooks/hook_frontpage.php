@@ -9,7 +9,7 @@ function aggregator2_hook_frontpage(&$links) {
     assert('array_key_exists("links", $links)');
 
     $links['federation'][] = array(
-        'href' => SimpleSAML_Module::getModuleURL('aggregator2/'),
+        'href' => SimpleSAML\Module::getModuleURL('aggregator2/'),
         'text' => '{aggregator2:aggregator:frontpage_link}',
     );
 

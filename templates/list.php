@@ -16,14 +16,14 @@ if (count($this->data['sources']) === 0) {
         );
         echo str_repeat(' ', 8)."<li>\n";
         echo str_repeat(' ', 12).'<a href="';
-        echo SimpleSAML_Module::getModuleURL('aggregator2/get.php', $params).'">'.htmlspecialchars($id)."</a>\n";
+        echo SimpleSAML\Module::getModuleURL('aggregator2/get.php', $params).'">'.htmlspecialchars($id)."</a>\n";
         echo str_repeat(' ', 12).'<a href="';
         $params['mimetype'] = 'text/plain';
-        echo SimpleSAML_Module::getModuleURL('aggregator2/get.php', $params).'">['.
+        echo SimpleSAML\Module::getModuleURL('aggregator2/get.php', $params).'">['.
             $this->t('{aggregator2:aggregator:text}')."]</a>\n";
         echo str_repeat(' ', 12).'<a href="';
         $params['mimetype'] = 'application/xml';
-        echo SimpleSAML_Module::getModuleURL('aggregator2/get.php', $params)."\">[XML]</a>\n";
+        echo SimpleSAML\Module::getModuleURL('aggregator2/get.php', $params)."\">[XML]</a>\n";
         echo str_repeat(' ', 8)."</li>\n";
     }
 
