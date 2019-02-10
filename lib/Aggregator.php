@@ -7,7 +7,7 @@ use \SimpleSAML\Configuration;
 use \SimpleSAML\Logger;
 use \SimpleSAML\Utils\System;
 
-use \SAML2\Const;
+use \SAML2\Const as Constants;
 use \SAML2\SignedElement;
 use \SAML2\Utils;
 use \SAML2\XML\md\EntitiesDescriptor;
@@ -645,7 +645,7 @@ class Aggregator
 
         // configure filters
         $this->protocols = [
-            Const::NS_SAMLP                  => true,
+            Constants::NS_SAMLP                    => true,
             'urn:oasis:names:tc:SAML:1.1:protocol' => true,
         ];
         $this->roles = [
