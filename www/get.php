@@ -32,7 +32,7 @@ if (isset($_GET['mimetype']) && in_array($_GET['mimetype'], $allowedmimetypes)) 
 }
 
 if ($mimetype === 'text/plain') {
-    $xml = \SimpleSAML\Utils\XML::::formatXMLString($xml);
+    $xml = \SimpleSAML\Utils\XML::formatXMLString($xml);
 }
 
 header('Content-Type: '.$mimetype);

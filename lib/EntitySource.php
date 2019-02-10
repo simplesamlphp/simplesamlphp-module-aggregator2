@@ -12,6 +12,8 @@ use \SAML2\Utils;
 use \SAML2\XML\md\EntitiesDescriptor;
 use \SAML2\XML\md\EntityDescriptor;
 
+use \RobRichards\XMLSecLibs\XMLSecurityKey;
+
 /**
  * Class for loading metadata from files and URLs.
  *
@@ -29,7 +31,7 @@ class EntitySource
     /**
      * The aggregator we belong to.
      *
-     * @var sspmod_aggregator2_Aggregator
+     * @var \SimpleSAML\Module\aggregator2\Aggregator
      */
     protected $aggregator;
 
@@ -119,7 +121,7 @@ class EntitySource
         $context = ['ssl' => []];
         if ($this->sslCAFile !== null) {
             $context['ssl']['cafile'] = Config::getCertPath($this->sslCAFile);
-            SimpleSAML\Logger::debug($this->logLoc.'Validating https connection against CA certificate(s) found in '.
+            Logger::debug($this->logLoc.'Validating https connection against CA certificate(s) found in '.
                 var_export($context['ssl']['cafile'], true));
             $context['ssl']['verify_peer'] = true;
             $context['ssl']['CN_match'] = parse_url($this->url, PHP_URL_HOST);
@@ -131,7 +133,7 @@ class EntitySource
             return null;
         }
 
-        $doc = new DOMDocument();
+        $doc = new \DOMDocument();
         $res = $doc->loadXML($data);
         if (!$res) {
             Logger::error($this->logLoc.'Error parsing XML from '.var_export($this->url, true));

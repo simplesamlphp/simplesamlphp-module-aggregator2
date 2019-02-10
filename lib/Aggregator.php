@@ -3,12 +3,13 @@
 namespace SimpleSAML\Module\aggregator2;
 
 use \SimpleSAML\Error\Exception;
-use \SimpleSAML\Utils\Configuration;
-use \SimpleSAML\Utils\Logger;
+use \SimpleSAML\Configuration;
+use \SimpleSAML\Logger;
 use \SimpleSAML\Utils\System;
 
+use \SAML2\Const;
 use \SAML2\SignedElement;
-use \SAML2_Utils;
+use \SAML2\Utils;
 use \SAML2\XML\md\EntitiesDescriptor;
 use \SAML2\XML\md\EntityDescriptor;
 use \SAML2\XML\mdrpi\RegistrationInfo;
@@ -102,7 +103,7 @@ class Aggregator
      *
      * Values will be true if enabled, false otherwise.
      *
-     * @var string[]|null
+     * @var array|null
      */
     protected $protocols;
 
@@ -115,7 +116,7 @@ class Aggregator
      *
      * Values will be true if enabled, false otherwise.
      *
-     * @var string[]|null
+     * @var array|null
      */
     protected $roles;
 
@@ -567,7 +568,7 @@ class Aggregator
      *
      * @return SAML2_XML_md_EntitiesDescriptor The EntitiesDescriptor with only the entities filtered.
      */
-    protected function filter(SAML2_XML_md_EntitiesDescriptor $descriptor)
+    protected function filter(EntitiesDescriptor $descriptor)
     {
         if ($this->roles === null || $this->protocols === null) {
             return $descriptor;
@@ -644,7 +645,7 @@ class Aggregator
 
         // configure filters
         $this->protocols = [
-            SAML2_Const::NS_SAMLP                  => true,
+            Const::NS_SAMLP                  => true,
             'urn:oasis:names:tc:SAML:1.1:protocol' => true,
         ];
         $this->roles = [
