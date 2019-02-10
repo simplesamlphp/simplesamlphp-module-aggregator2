@@ -1,0 +1,12 @@
+msgid "{aggregator2:aggregator:frontpage_link}"
+msgstr "Metadata \u532f\u96c6"
+
+msgid "Aggregators"
+msgstr "\u532f\u96c6"
+
+msgid "No aggregators"
+msgstr "\u8a2d\u5b9a\u6a94\u7121\u532f\u96c6\u5b9a\u7fa9"
+
+msgid "Text"
+msgstr "\u6587\u5b57"
+

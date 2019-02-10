@@ -1,0 +1,12 @@
+msgid "{aggregator2:aggregator:frontpage_link}"
+msgstr "Metadatu agregators"
+
+msgid "Aggregators"
+msgstr "Aggregators"
+
+msgid "No aggregators"
+msgstr "Konfigur\u0101cij\u0101 nav defin\u0113ti agregatori."
+
+msgid "Text"
+msgstr "Teksts"
+

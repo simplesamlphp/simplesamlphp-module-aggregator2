@@ -1,0 +1,12 @@
+msgid "{aggregator2:aggregator:frontpage_link}"
+msgstr "Agregator de metadate"
+
+msgid "Aggregators"
+msgstr "Aggregators"
+
+msgid "No aggregators"
+msgstr "Nu sunt definite agregatoare \u00een configurare."
+
+msgid "Text"
+msgstr "Text"
+

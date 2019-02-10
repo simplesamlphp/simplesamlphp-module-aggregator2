@@ -1,0 +1,12 @@
+msgid "{aggregator2:aggregator:frontpage_link}"
+msgstr "Metaandmete agregeerija"
+
+msgid "Aggregators"
+msgstr "Aggregators"
+
+msgid "No aggregators"
+msgstr "Seadistustes pole agregeerijaid kirjeldatud."
+
+msgid "Text"
+msgstr "Tekst"
+

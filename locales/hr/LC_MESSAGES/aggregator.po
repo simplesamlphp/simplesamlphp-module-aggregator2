@@ -1,0 +1,12 @@
+msgid "{aggregator2:aggregator:frontpage_link}"
+msgstr "Agregator metapodataka"
+
+msgid "Aggregators"
+msgstr "Aggregators"
+
+msgid "No aggregators"
+msgstr "U konfiguraciji nije definiran niti jedan agregator."
+
+msgid "Text"
+msgstr "Tekst"
+

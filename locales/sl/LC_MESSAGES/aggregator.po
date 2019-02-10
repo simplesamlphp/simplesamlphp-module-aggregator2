@@ -1,0 +1,12 @@
+msgid "{aggregator2:aggregator:frontpage_link}"
+msgstr "Agregator metapodatkov"
+
+msgid "Aggregators"
+msgstr "Aggregators"
+
+msgid "No aggregators"
+msgstr "V nastavitvah ni definiran noben agregator."
+
+msgid "Text"
+msgstr "Besedilo"
+

@@ -1,0 +1,12 @@
+msgid "{aggregator2:aggregator:frontpage_link}"
+msgstr "\u5143\u4fe1\u606f\u805a\u5408\u5668"
+
+msgid "Aggregators"
+msgstr "Aggregators"
+
+msgid "No aggregators"
+msgstr "\u914d\u7f6e\u4e2d\u6ca1\u6709\u5b9a\u4e49\u805a\u5408\u5668"
+
+msgid "Text"
+msgstr "\u6587\u672c"
+

@@ -1,0 +1,12 @@
+msgid "{aggregator2:aggregator:frontpage_link}"
+msgstr "Aggregator metadata"
+
+msgid "Aggregators"
+msgstr "Aggregators"
+
+msgid "No aggregators"
+msgstr "Tidak ada aggregator yang didefinisikan di konfigurasi."
+
+msgid "Text"
+msgstr "Teks"
+

@@ -1,0 +1,12 @@
+msgid "{aggregator2:aggregator:frontpage_link}"
+msgstr "Metadaten-Aggregator"
+
+msgid "Aggregators"
+msgstr "Aggregators"
+
+msgid "No aggregators"
+msgstr "Keine Aggregatoren in der Konfiguration definiert."
+
+msgid "Text"
+msgstr "Text"
+

@@ -1,0 +1,12 @@
+msgid "{aggregator2:aggregator:frontpage_link}"
+msgstr "Metaduomen\u0173 surink\u0117jas"
+
+msgid "Aggregators"
+msgstr "Aggregators"
+
+msgid "No aggregators"
+msgstr "Konfig\u016bracijoje nenurodyti jokie surink\u0117jai."
+
+msgid "Text"
+msgstr "Tekstas"
+

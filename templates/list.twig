@@ -1,0 +1,21 @@
+{% extends "base.twig" %}
+
+{% block content %}
+<h1>{{ 'Aggregators'|trans }}</h1>
+
+{% if sources is empty %}
+    <p>{{ 'No aggregators'|trans }}</p>
+{% else %}
+    <ul>
+
+    {% for id, links in sources %}
+        <li>
+            <a href="{{ links.name }} ">{{ id|escape }}</a>
+            <a href="{{ links.text }} ">{{ 'Text'|trans }}</a>
+            <a href="{{ links.xml }} ">[XML]</a>
+        </li>
+    {% endfor%}
+
+    </ul>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,12 @@
+msgid "{aggregator2:aggregator:frontpage_link}"
+msgstr "Metadatu eranslea"
+
+msgid "Aggregators"
+msgstr "Aggregators"
+
+msgid "No aggregators"
+msgstr "Ez da inolako eranslerik zehaztu konfigurazioan."
+
+msgid "Text"
+msgstr "Testua"
+
