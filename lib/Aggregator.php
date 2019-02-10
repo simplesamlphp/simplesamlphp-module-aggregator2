@@ -658,7 +658,7 @@ class Aggregator
 
         // check SAML 2.0 protocol
         $options = ['saml2', 'saml20-idp', 'saml20-sp', 'saml20-aa'];
-        $this->protocols[SAML2_Const::NS_SAMLP] = (array_intersect($set, $options) !== []);
+        $this->protocols[Constants::NS_SAMLP] = (array_intersect($set, $options) !== []);
 
         // check SHIB 1.3 protocol
         $options = ['shib13', 'shib13-idp', 'shib13-sp', 'shib13-aa'];
