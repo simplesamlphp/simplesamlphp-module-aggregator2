@@ -1,84 +1,91 @@
 <?php
 
+namespace SimpleSAML\Module\aggregator2;
+
+use \SimpleSAML\Error\Exception;
+use \SimpleSAML\Utils\Configuration;
+use \SimpleSAML\Utils\Logger;
+use \SimpleSAML\Utils\System;
+
+use \SAML2\SignedElement;
+use \SAML2_Utils;
+use \SAML2\XML\md\EntitiesDescriptor;
+use \SAML2\XML\md\EntityDescriptor;
+use \SAML2\XML\mdrpi\RegistrationInfo;
+
+use \RobRichards\XMLSecLibs\XMLSecurityKey;
+
 /**
  * Class which implements a basic metadata aggregator.
  *
  * @package SimpleSAMLphp
  */
-class sspmod_aggregator2_Aggregator {
+class Aggregator
+{
+    /**
+     * The list of signature algorithms supported by the aggregator.
+     *
+     * @var array
+     */
+    public static $SUPPORTED_SIGNATURE_ALGORITHMS = [
+        XMLSecurityKey::RSA_SHA1,
+        XMLSecurityKey::RSA_SHA256,
+        XMLSecurityKey::RSA_SHA384,
+        XMLSecurityKey::RSA_SHA512,
+    ];
 
-	/**
-	 * The list of signature algorithms supported by the aggregator.
-	 *
-	 * @var array
-	 */
-	public static $SUPPORTED_SIGNATURE_ALGORITHMS = array(
-		XMLSecurityKey::RSA_SHA1,
-		XMLSecurityKey::RSA_SHA256,
-		XMLSecurityKey::RSA_SHA384,
-		XMLSecurityKey::RSA_SHA512,
-	);
+    /**
+     * The ID of this aggregator.
+     *
+     * @var string
+     */
+    protected $id;
 
+    /**
+     * Our log "location".
+     *
+     * @var string
+     */
+    protected $logLoc;
 
-	/**
-	 * The ID of this aggregator.
-	 *
-	 * @var string
-	 */
-	protected $id;
+    /**
+     * Which cron-tag this should be updated in.
+     *
+     * @var string|null
+     */
+    protected $cronTag;
 
+    /**
+     * Absolute path to a cache directory.
+     *
+     * @var string|null
+     */
+    protected $cacheDirectory;
 
-	/**
-	 * Our log "location".
-	 *
-	 * @var string
-	 */
-	protected $logLoc;
+    /**
+     * The entity sources.
+     *
+     * Array of sspmod_aggregator2_EntitySource objects.
+     *
+     * @var array
+     */
+    protected $sources = [];
 
+    /**
+     * How long the generated metadata should be valid, as a number of seconds.
+     *
+     * This is used to set the validUntil attribute on the generated EntityDescriptor.
+     *
+     * @var int
+     */
+    protected $validLength;
 
-	/**
-	 * Which cron-tag this should be updated in.
-	 *
-	 * @var string|NULL
-	 */
-	protected $cronTag;
-
-
-	/**
-	 * Absolute path to a cache directory.
-	 *
-	 * @var string|NULL
-	 */
-	protected $cacheDirectory;
-
-
-	/**
-	 * The entity sources.
-	 *
-	 * Array of sspmod_aggregator2_EntitySource objects.
-	 *
-	 * @var array
-	 */
-	protected $sources = array();
-
-
-	/**
-	 * How long the generated metadata should be valid, as a number of seconds.
-	 *
-	 * This is used to set the validUntil attribute on the generated EntityDescriptor.
-	 *
-	 * @var int
-	 */
-	protected $validLength;
-
-
-	/**
-	 * Duration we should cache generated metadata.
-	 *
-	 * @var int
-	 */
-	protected $cacheGenerated;
-
+    /**
+     * Duration we should cache generated metadata.
+     *
+     * @var int
+     */
+    protected $cacheGenerated;
 
     /**
      * An array of entity IDs to exclude from the aggregate.
@@ -86,7 +93,6 @@ class sspmod_aggregator2_Aggregator {
      * @var string[]|null
      */
     protected $excluded;
-
 
     /**
      * An indexed array of protocols to filter the aggregate by. keys can be any of:
@@ -99,7 +105,6 @@ class sspmod_aggregator2_Aggregator {
      * @var string[]|null
      */
     protected $protocols;
-
 
     /**
      * An array of roles to filter the aggregate by. Keys can be any of:
@@ -114,98 +119,91 @@ class sspmod_aggregator2_Aggregator {
      */
     protected $roles;
 
+    /**
+     * The key we should use to sign the metadata.
+     *
+     * @var string|null
+     */
+    protected $signKey;
 
-	/**
-	 * The key we should use to sign the metadata.
-	 *
-	 * @var string|NULL
-	 */
-	protected $signKey;
+    /**
+     * The password for the private key.
+     *
+     * @var string|null
+     */
+    protected $signKeyPass;
 
+    /**
+     * The certificate of the key we sign the metadata with.
+     *
+     * @var string|null
+     */
+    protected $signCert;
 
-	/**
-	 * The password for the private key.
-	 *
-	 * @var string|NULL
-	 */
-	protected $signKeyPass;
+    /**
+     * The algorithm to use for metadata signing.
+     *
+     * @var string|null
+     */
+    protected $signAlg;
 
+    /**
+     * The CA certificate file that should be used to validate https-connections.
+     *
+     * @var string|null
+     */
+    protected $sslCAFile;
 
-	/**
-	 * The certificate of the key we sign the metadata with.
-	 *
-	 * @var string|NULL
-	 */
-	protected $signCert;
+    /**
+     * The cache ID for our generated metadata.
+     *
+     * @var string
+     */
+    protected $cacheId;
 
+    /**
+     * The cache tag for our generated metadata.
+     *
+     * This tag is used to make sure that a config change
+     * invalidates our cached metadata.
+     *
+     * @var string
+     */
+    protected $cacheTag;
 
-	/**
-	 * The algorithm to use for metadata signing.
-	 *
-	 * @var string|NULL
-	 */
-	protected $signAlg;
-
-
-	/**
-	 * The CA certificate file that should be used to validate https-connections.
-	 *
-	 * @var string|NULL
-	 */
-	protected $sslCAFile;
-
-
-	/**
-	 * The cache ID for our generated metadata.
-	 *
-	 * @var string
-	 */
-	protected $cacheId;
-
-
-	/**
-	 * The cache tag for our generated metadata.
-	 *
-	 * This tag is used to make sure that a config change
-	 * invalidates our cached metadata.
-	 *
-	 * @var string
-	 */
-	protected $cacheTag;
-
-
-	/**
-	 * The registration information for our generated metadata.
-	 *
-	 * @var array
-	 */
-	protected $regInfo;
+    /**
+     * The registration information for our generated metadata.
+     *
+     * @var array
+     */
+    protected $regInfo;
 
 
-	/**
-	 * Initialize this aggregator.
-	 *
-	 * @param string $id  The id of this aggregator.
-	 * @param SimpleSAML_Configuration $config  The configuration for this aggregator.
-	 */
-	protected function __construct($id, SimpleSAML_Configuration $config) {
-		assert('is_string($id)');
+    /**
+     * Initialize this aggregator.
+     *
+     * @param string $id  The id of this aggregator.
+     * @param \SimpleSAML\Configuration $config  The configuration for this aggregator.
+     */
+    protected function __construct($id, Configuration $config)
+    {
+        assert('is_string($id)');
 
-		$this->id = $id;
-		$this->logLoc = 'aggregator2:' . $this->id . ': ';
+        $this->id = $id;
+        $this->logLoc = 'aggregator2:'.$this->id.': ';
 
-		$this->cronTag = $config->getString('cron.tag', NULL);
+        $this->cronTag = $config->getString('cron.tag', null);
 
-		$this->cacheDirectory = $config->getString('cache.directory', NULL);
-		if ($this->cacheDirectory !== NULL) {
-			$this->cacheDirectory = SimpleSAML_Utilities::resolvePath($this->cacheDirectory);
-		}
+        $this->cacheDirectory = $config->getString('cache.directory', null);
+        if ($this->cacheDirectory !== null) {
+            $this->cacheDirectory = System::resolvePath($this->cacheDirectory);
+        }
 
-		$this->cacheGenerated = $config->getInteger('cache.generated', NULL);
-		if ($this->cacheGenerated !== NULL) {
-			$this->cacheId = sha1($this->id);
-			$this->cacheTag = sha1(serialize($config));
-		}
+        $this->cacheGenerated = $config->getInteger('cache.generated', null);
+        if ($this->cacheGenerated !== null) {
+            $this->cacheId = sha1($this->id);
+            $this->cacheTag = sha1(serialize($config));
+        }
 
         // configure entity IDs excluded by default
         $this->excludeEntities($config->getArrayize('exclude', null));
@@ -213,340 +211,344 @@ class sspmod_aggregator2_Aggregator {
         // configure filters
         $this->setFilters($config->getArrayize('filter', null));
 
-		$this->validLength = $config->getInteger('valid.length', 7*24*60*60);
+        $this->validLength = $config->getInteger('valid.length', 7*24*60*60);
 
-		$globalConfig = SimpleSAML_Configuration::getInstance();
-		$certDir = $globalConfig->getPathValue('certdir', 'cert/');
+        $globalConfig = Configuration::getInstance();
+        $certDir = $globalConfig->getPathValue('certdir', 'cert/');
 
-		$signKey = $config->getString('sign.privatekey', NULL);
-		if ($signKey !== NULL) {
-			$signKey = SimpleSAML_Utilities::resolvePath($signKey, $certDir);
-			$this->signKey = @file_get_contents($signKey);
-			if ($this->signKey === NULL) {
-				throw new SimpleSAML_Error_Exception('Unable to load private key from ' . var_export($signKey, TRUE));
-			}
-		}
+        $signKey = $config->getString('sign.privatekey', null);
+        if ($signKey !== null) {
+            $signKey = System::resolvePath($signKey, $certDir);
+            $this->signKey = @file_get_contents($signKey);
+            if ($this->signKey === null) {
+                throw new Exception('Unable to load private key from '.var_export($signKey, true));
+            }
+        }
 
-		$this->signKeyPass = $config->getString('sign.privatekey_pass', NULL);
+        $this->signKeyPass = $config->getString('sign.privatekey_pass', null);
 
-		$signCert = $config->getString('sign.certificate', NULL);
-		if ($signCert !== NULL) {
-			$signCert = SimpleSAML_Utilities::resolvePath($signCert, $certDir);
-			$this->signCert = @file_get_contents($signCert);
-			if ($this->signCert === NULL) {
-				throw new SimpleSAML_Error_Exception('Unable to load certificate file from ' . var_export($signCert, TRUE));
-			}
-		}
+        $signCert = $config->getString('sign.certificate', null);
+        if ($signCert !== null) {
+            $signCert = System::resolvePath($signCert, $certDir);
+            $this->signCert = @file_get_contents($signCert);
+            if ($this->signCert === null) {
+                throw new Exception('Unable to load certificate file from '.var_export($signCert, true));
+            }
+        }
 
-		$this->signAlg = $config->getString('sign.algorithm', XMLSecurityKey::RSA_SHA1);
-		if (!in_array($this->signAlg, self::$SUPPORTED_SIGNATURE_ALGORITHMS)) {
-			throw new SimpleSAML_Error_Exception('Unsupported signature algorithm '. var_export($this->signAlg, TRUE));
-		}
+        $this->signAlg = $config->getString('sign.algorithm', XMLSecurityKey::RSA_SHA1);
+        if (!in_array($this->signAlg, self::$SUPPORTED_SIGNATURE_ALGORITHMS)) {
+            throw new Exception('Unsupported signature algorithm '.var_export($this->signAlg, true));
+        }
 
-		$this->sslCAFile = $config->getString('ssl.cafile', NULL);
+        $this->sslCAFile = $config->getString('ssl.cafile', null);
 
-		$this->regInfo = $config->getArray('RegistrationInfo', NULL);
+        $this->regInfo = $config->getArray('RegistrationInfo', null);
 
-		$this->initSources($config->getConfigList('sources'));
-	}
-
-
-	/**
-	 * Populate the sources array.
-	 *
-	 * This is called from the constructor, and can be overridden in subclasses.
-	 *
-	 * @param array $sources  The sources as an array of SimpleSAML_Configuration objects.
-	 */
-	protected function initSources(array $sources) {
-
-		foreach ($sources as $source) {
-			$this->sources[] = new sspmod_aggregator2_EntitySource($this, $source);
-		}
-	}
+        $this->initSources($config->getConfigList('sources'));
+    }
 
 
-	/**
-	 * Return an instance of the aggregator with the given id.
-	 *
-	 * @param string $id  The id of the aggregator.
-	 */
-	public static function getAggregator($id) {
-		assert('is_string($id)');
-
-		$config = SimpleSAML_Configuration::getConfig('module_aggregator2.php');
-		return new sspmod_aggregator2_Aggregator($id, $config->getConfigItem($id));
-	}
-
-
-	/**
-	 * Retrieve the ID of the aggregator.
-	 *
-	 * @return string  The ID of this aggregator.
-	 */
-	public function getId() {
-		return $this->id;
-	}
+    /**
+     * Populate the sources array.
+     *
+     * This is called from the constructor, and can be overridden in subclasses.
+     *
+     * @param array $sources  The sources as an array of SimpleSAML_Configuration objects.
+     */
+    protected function initSources(array $sources)
+    {
+        foreach ($sources as $source) {
+            $this->sources[] = new EntitySource($this, $source);
+        }
+    }
 
 
-	/**
-	 * Add an item to the cache.
-	 *
-	 * @param string $id  The identifier of this data.
-	 * @param string $data  The data.
-	 * @param int $expires  The timestamp the data expires.
-	 * @param string|NULL $tag  An extra tag that can be used to verify the validity of the cached data.
-	 */
-	public function addCacheItem($id, $data, $expires, $tag = NULL) {
-		assert('is_string($id)');
-		assert('is_string($data)');
-		assert('is_int($expires)');
-		assert('is_null($tag) || is_string($tag)');
+    /**
+     * Return an instance of the aggregator with the given id.
+     *
+     * @param string $id  The id of the aggregator.
+     */
+    public static function getAggregator($id)
+    {
+        assert('is_string($id)');
 
-		$cacheFile = $this->cacheDirectory . '/' . $id;
-		try {
-			SimpleSAML_Utilities::writeFile($cacheFile, $data);
-		} catch (Exception $e) {
-			SimpleSAML\Logger::warning($this->logLoc . 'Unable to write to cache file ' . var_export($cacheFile, TRUE));
-			return;
-		}
-
-		$expireInfo = (string)$expires;
-		if ($tag !== NULL) {
-			$expireInfo .= ':' . $tag;
-		}
-
-		$expireFile = $cacheFile . '.expire';
-		try {
-			SimpleSAML_Utilities::writeFile($expireFile, $expireInfo);
-		} catch (Exception $e) {
-			SimpleSAML\Logger::warning($this->logLoc . 'Unable to write expiration info to ' . var_export($expireFile, TRUE));
-		}
-
-	}
+        $config = Configuration::getConfig('module_aggregator2.php');
+        return new Aggregator($id, $config->getConfigItem($id));
+    }
 
 
-	/**
-	 * Check validity of cached data.
-	 *
-	 * @param string $id  The identifier of this data.
-	 * @param string $tag  The tag that was passed to addCacheItem.
-	 * @return bool  TRUE if the data is valid, FALSE if not.
-	 */
-	public function isCacheValid($id, $tag = NULL) {
-		assert('is_string($id)');
-		assert('is_null($tag) || is_string($tag)');
-
-		$cacheFile = $this->cacheDirectory . '/' . $id;
-		if (!file_exists($cacheFile)) {
-			return FALSE;
-		}
-
-		$expireFile = $cacheFile . '.expire';
-		if (!file_exists($expireFile)) {
-			return FALSE;
-		}
-
-		$expireData = @file_get_contents($expireFile);
-		if ($expireData === FALSE) {
-			return FALSE;
-		}
-
-		$expireData = explode(':', $expireData, 2);
-
-		$expireTime = (int)$expireData[0];
-		if ($expireTime <= time()) {
-			return FALSE;
-		}
-
-		if (count($expireData) === 1) {
-			$expireTag = NULL;
-		} else {
-			$expireTag = $expireData[1];
-		}
-		if ($expireTag !== $tag) {
-			return FALSE;
-		}
-
-		return TRUE;
-	}
+    /**
+     * Retrieve the ID of the aggregator.
+     *
+     * @return string  The ID of this aggregator.
+     */
+    public function getId()
+    {
+        return $this->id;
+    }
 
 
-	/**
-	 * Get the cache item.
-	 *
-	 * @param string $id  The identifier of this data.
-	 * @param string $tag  The tag that was passed to addCacheItem.
-	 * @return string|NULL  The cache item, or NULL if it isn't cached or if it is expired.
-	 */
-	public function getCacheItem($id, $tag = NULL) {
-		assert('is_string($id)');
-		assert('is_null($tag) || is_string($tag)');
+    /**
+     * Add an item to the cache.
+     *
+     * @param string $id  The identifier of this data.
+     * @param string $data  The data.
+     * @param int $expires  The timestamp the data expires.
+     * @param string|null $tag  An extra tag that can be used to verify the validity of the cached data.
+     */
+    public function addCacheItem($id, $data, $expires, $tag = null)
+    {
+        assert('is_string($id)');
+        assert('is_string($data)');
+        assert('is_int($expires)');
+        assert('is_null($tag) || is_string($tag)');
 
-		if (!$this->isCacheValid($id, $tag)) {
-			return NULL;
-		}
+        $cacheFile = $this->cacheDirectory.'/'.$id;
+        try {
+            System::writeFile($cacheFile, $data);
+        } catch (\Exception $e) {
+            Logger::warning($this->logLoc.'Unable to write to cache file '.var_export($cacheFile, true));
+            return;
+        }
 
-		$cacheFile = $this->cacheDirectory . '/' . $id;
-		return @file_get_contents($cacheFile);
-	}
+        $expireInfo = (string)$expires;
+        if ($tag !== null) {
+            $expireInfo .= ':'.$tag;
+        }
 
-
-	/**
-	 * Get the cache filename for the specific id.
-	 *
-	 * @param string $id  The identifier of the cached data.
-	 * @return string|NULL  The filename, or NULL if the cache file doesn't exist.
-	 */
-	public function getCacheFile($id) {
-		assert('is_string($id)');
-
-		$cacheFile = $this->cacheDirectory . '/' . $id;
-		if (!file_exists($cacheFile)) {
-			return NULL;
-		}
-
-		return $cacheFile;
-	}
-
-
-	/**
-	 * Retrieve the SSL CA file path, if it is set.
-	 *
-	 * @return string|NULL  The SSL CA file path.
-	 */
-	public function getCAFile() {
-
-		return $this->sslCAFile;
-	}
+        $expireFile = $cacheFile.'.expire';
+        try {
+            System::writeFile($expireFile, $expireInfo);
+        } catch (\Exception $e) {
+            Logger::warning($this->logLoc.'Unable to write expiration info to '.var_export($expireFile, true));
+        }
+    }
 
 
-	/**
-	 * Sign the generated EntitiesDescriptor.
-	 */
-	protected function addSignature(SAML2_SignedElement $element) {
+    /**
+     * Check validity of cached data.
+     *
+     * @param string $id  The identifier of this data.
+     * @param string $tag  The tag that was passed to addCacheItem.
+     * @return bool  TRUE if the data is valid, FALSE if not.
+     */
+    public function isCacheValid($id, $tag = null)
+    {
+        assert('is_string($id)');
+        assert('is_null($tag) || is_string($tag)');
 
-		if ($this->signKey === NULL) {
-			return;
-		}
+        $cacheFile = $this->cacheDirectory.'/'.$id;
+        if (!file_exists($cacheFile)) {
+            return false;
+        }
 
-		$privateKey = new XMLSecurityKey($this->signAlg, array('type' => 'private'));
-		if ($this->signKeyPass !== NULL) {
-			$privateKey->passphrase = $this->signKeyPass;
-		}
-		$privateKey->loadKey($this->signKey, FALSE);
+        $expireFile = $cacheFile.'.expire';
+        if (!file_exists($expireFile)) {
+            return false;
+        }
 
+        $expireData = @file_get_contents($expireFile);
+        if ($expireData === false) {
+            return false;
+        }
 
-		$element->setSignatureKey($privateKey);
+        $expireData = explode(':', $expireData, 2);
 
-		if ($this->signCert !== NULL) {
-			$element->setCertificates(array($this->signCert));
-		}
-	}
+        $expireTime = intval($expireData[0]);
+        if ($expireTime <= time()) {
+            return false;
+        }
 
+        if (count($expireData) === 1) {
+            $expireTag = null;
+        } else {
+            $expireTag = $expireData[1];
+        }
+        if ($expireTag !== $tag) {
+            return false;
+        }
 
-	/**
-	 * Recursively browse the children of an EntitiesDescriptor element looking for EntityDescriptor elements, and
-	 * return an array containing all of them.
-	 *
-	 * @param SAML2_XML_md_EntitiesDescriptor $entity The source EntitiesDescriptor that holds the entities to extract.
-	 *
-	 * @return array An array containing all the EntityDescriptors found.
-	 */
-	private static function extractEntityDescriptors($entity) {
-		assert('$entity instanceof SAML2_XML_md_EntitiesDescriptor');
-
-		if (!($entity instanceof SAML2_XML_md_EntitiesDescriptor)) {
-			return array();
-		}
-
-		$results = array();
-		foreach ($entity->children as $child) {
-			if ($child instanceof SAML2_XML_md_EntityDescriptor) {
-				$results[] = $child;
-				continue;
-			}
-
-			$results = array_merge($results, self::extractEntityDescriptors($child));
-		}
-		return $results;
-	}
+        return true;
+    }
 
 
-	/**
-	 * Retrieve all entities as an EntitiesDescriptor.
-	 *
-	 * @return SAML2_XML_md_EntitiesDescriptor  The entities.
-	 */
-	protected function getEntitiesDescriptor() {
+    /**
+     * Get the cache item.
+     *
+     * @param string $id  The identifier of this data.
+     * @param string $tag  The tag that was passed to addCacheItem.
+     * @return string|null  The cache item, or NULL if it isn't cached or if it is expired.
+     */
+    public function getCacheItem($id, $tag = null)
+    {
+        assert('is_string($id)');
+        assert('is_null($tag) || is_string($tag)');
 
-		$ret = new SAML2_XML_md_EntitiesDescriptor();
+        if (!$this->isCacheValid($id, $tag)) {
+            return null;
+        }
 
-		$now = time();
+        $cacheFile = $this->cacheDirectory.'/'.$id;
+        return @file_get_contents($cacheFile);
+    }
 
-		// add RegistrationInfo extension if enabled
-		if ($this->regInfo !== NULL) {
-			$ri = new SAML2_XML_mdrpi_RegistrationInfo();
-			$ri->registrationInstant = $now;
-			foreach ($this->regInfo as $riName => $riValues) {
-				switch ($riName) {
-					case 'authority':
-						$ri->registrationAuthority = $riValues;
-						break;
-					case 'instant':
-						$ri->registrationInstant = SAML2_Utils::xsDateTimeToTimestamp($riValues);
-						break;
-					case 'policies':
-						$ri->RegistrationPolicy = $riValues;
-						break;
-				}
-			}
-			$ret->Extensions[] = $ri;
-		}
 
-		foreach ($this->sources as $source) {
-			$m = $source->getMetadata();
-			if ($m === NULL) {
-				continue;
-			}
-			if ($m instanceof SAML2_XML_md_EntityDescriptor) {
-				$ret->children[] = $m;
-			} elseif ($m instanceof SAML2_XML_md_EntitiesDescriptor) {
-				$ret->children = array_merge($ret->children, self::extractEntityDescriptors($m));
-			}
-		}
+    /**
+     * Get the cache filename for the specific id.
+     *
+     * @param string $id  The identifier of the cached data.
+     * @return string|null  The filename, or NULL if the cache file doesn't exist.
+     */
+    public function getCacheFile($id)
+    {
+        assert('is_string($id)');
 
-		$ret->children = array_unique($ret->children, SORT_REGULAR);
-		$ret->validUntil = $now + $this->validLength;
+        $cacheFile = $this->cacheDirectory.'/'.$id;
+        if (!file_exists($cacheFile)) {
+            return null;
+        }
 
-		return $ret;
-	}
+        return $cacheFile;
+    }
+
+
+    /**
+     * Retrieve the SSL CA file path, if it is set.
+     *
+     * @return string|null  The SSL CA file path.
+     */
+    public function getCAFile()
+    {
+        return $this->sslCAFile;
+    }
+
+
+    /**
+     * Sign the generated EntitiesDescriptor.
+     */
+    protected function addSignature(SignedElement $element)
+    {
+        if ($this->signKey === null) {
+            return;
+        }
+
+        $privateKey = new XMLSecurityKey($this->signAlg, ['type' => 'private']);
+        if ($this->signKeyPass !== null) {
+            $privateKey->passphrase = $this->signKeyPass;
+        }
+        $privateKey->loadKey($this->signKey, false);
+
+        $element->setSignatureKey($privateKey);
+
+        if ($this->signCert !== null) {
+            $element->setCertificates([$this->signCert]);
+        }
+    }
+
+
+    /**
+     * Recursively browse the children of an EntitiesDescriptor element looking for EntityDescriptor elements, and
+     * return an array containing all of them.
+     *
+     * @param \SAML2\XML\md\EntitiesDescriptor $entity The source EntitiesDescriptor that holds the entities to extract.
+     *
+     * @return array An array containing all the EntityDescriptors found.
+     */
+    private static function extractEntityDescriptors($entity)
+    {
+        assert('$entity instanceof EntitiesDescriptor');
+
+        if (!($entity instanceof EntitiesDescriptor)) {
+            return [];
+        }
+
+        $results = [];
+        foreach ($entity->children as $child) {
+            if ($child instanceof EntityDescriptor) {
+                $results[] = $child;
+                continue;
+            }
+
+            $results = array_merge($results, self::extractEntityDescriptors($child));
+        }
+        return $results;
+    }
+
+
+    /**
+     * Retrieve all entities as an EntitiesDescriptor.
+     *
+     * @return \SAML2\XML\md\EntitiesDescriptor  The entities.
+     */
+    protected function getEntitiesDescriptor()
+    {
+        $ret = new EntitiesDescriptor();
+        $now = time();
+
+        // add RegistrationInfo extension if enabled
+        if ($this->regInfo !== null) {
+            $ri = new RegistrationInfo();
+            $ri->registrationInstant = $now;
+            foreach ($this->regInfo as $riName => $riValues) {
+                switch ($riName) {
+                    case 'authority':
+                        $ri->registrationAuthority = $riValues;
+                        break;
+                    case 'instant':
+                        $ri->registrationInstant = Utils::xsDateTimeToTimestamp($riValues);
+                        break;
+                    case 'policies':
+                        $ri->RegistrationPolicy = $riValues;
+                        break;
+                }
+            }
+            $ret->Extensions[] = $ri;
+        }
+
+        foreach ($this->sources as $source) {
+            $m = $source->getMetadata();
+            if ($m === NULL) {
+                continue;
+            }
+            if ($m instanceof EntityDescriptor) {
+                $ret->children[] = $m;
+            } elseif ($m instanceof EntitiesDescriptor) {
+                $ret->children = array_merge($ret->children, self::extractEntityDescriptors($m));
+            }
+        }
+
+        $ret->children = array_unique($ret->children, SORT_REGULAR);
+        $ret->validUntil = $now + $this->validLength;
+
+        return $ret;
+    }
 
 
     /**
      * Recursively traverse the children of an EntitiesDescriptor, removing those entities listed in the $entities
      * property. Returns the EntitiesDescriptor with the entities filtered out.
      *
-     * @param SAML2_XML_md_EntitiesDescriptor $descriptor The EntitiesDescriptor from where to exclude entities.
+     * @param \SAML2\XML\md\EntitiesDescriptor $descriptor The EntitiesDescriptor from where to exclude entities.
      *
-     * @return SAML2_XML_md_EntitiesDescriptor The EntitiesDescriptor with excluded entities filtered out.
+     * @return \SAML2\XML\md\EntitiesDescriptor The EntitiesDescriptor with excluded entities filtered out.
      */
-    protected function exclude(SAML2_XML_md_EntitiesDescriptor $descriptor)
+    protected function exclude(EntitiesDescriptor $descriptor)
     {
         if (empty($this->excluded)) {
             return $descriptor;
         }
 
-        $filtered = array();
+        $filtered = [];
         foreach ($descriptor->children as $child) {
-            if ($child instanceof SAML2_XML_md_EntityDescriptor) {
+            if ($child instanceof EntityDescriptor) {
                 if (in_array($child->entityID, $this->excluded)) {
                     continue;
                 }
                 $filtered[] = $child;
             }
 
-            if ($child instanceof SAML2_XML_md_EntitiesDescriptor) {
+            if ($child instanceof EntitiesDescriptor) {
                 $filtered[] = $this->exclude($child);
             }
         }
@@ -561,7 +563,7 @@ class sspmod_aggregator2_Aggregator {
      * the $roles property, and support for the protocols listed in the $protocols property. Returns the
      * EntitiesDescriptor containing only those entities.
      *
-     * @param SAML2_XML_md_EntitiesDescriptor $descriptor The EntitiesDescriptor to filter.
+     * @param \SAML2\XML\md\EntitiesDescriptor $descriptor The EntitiesDescriptor to filter.
      *
      * @return SAML2_XML_md_EntitiesDescriptor The EntitiesDescriptor with only the entities filtered.
      */
@@ -574,13 +576,13 @@ class sspmod_aggregator2_Aggregator {
         $enabled_roles = array_keys($this->roles, true);
         $enabled_protos = array_keys($this->protocols, true);
 
-        $filtered = array();
+        $filtered = [];
         foreach ($descriptor->children as $child) {
-            if ($child instanceof SAML2_XML_md_EntityDescriptor) {
+            if ($child instanceof EntityDescriptor) {
                 foreach ($child->RoleDescriptor as $role) {
                     if (in_array(get_class($role), $enabled_roles)) {
                         // we found a role descriptor that is enabled by our filters, check protocols
-                        if (array_intersect($enabled_protos, $role->protocolSupportEnumeration) !== array()) {
+                        if (array_intersect($enabled_protos, $role->protocolSupportEnumeration) !== []) {
                             // it supports some protocol we have enabled, add it
                             $filtered[] = $child;
                             break;
@@ -590,7 +592,7 @@ class sspmod_aggregator2_Aggregator {
 
             }
 
-            if ($child instanceof SAML2_XML_md_EntitiesDescriptor) {
+            if ($child instanceof EntitiesDescriptor) {
                 $filtered[] = $this->filter($child);
             }
         }
@@ -614,7 +616,7 @@ class sspmod_aggregator2_Aggregator {
         }
         $this->excluded = $entities;
         sort($this->excluded);
-        $this->cacheId = sha1($this->cacheId . serialize($this->excluded));
+        $this->cacheId = sha1($this->cacheId.serialize($this->excluded));
     }
 
 
@@ -641,98 +643,97 @@ class sspmod_aggregator2_Aggregator {
         }
 
         // configure filters
-        $this->protocols = array(
-            SAML2_Const::NS_SAMLP                  => TRUE,
-            'urn:oasis:names:tc:SAML:1.1:protocol' => TRUE,
-        );
-        $this->roles = array(
-            'SAML2_XML_md_IDPSSODescriptor'             => TRUE,
-            'SAML2_XML_md_SPSSODescriptor'              => TRUE,
-            'SAML2_XML_md_AttributeAuthorityDescriptor' => TRUE,
-        );
+        $this->protocols = [
+            SAML2_Const::NS_SAMLP                  => true,
+            'urn:oasis:names:tc:SAML:1.1:protocol' => true,
+        ];
+        $this->roles = [
+            'SAML2_XML_md_IDPSSODescriptor'             => true,
+            'SAML2_XML_md_SPSSODescriptor'              => true,
+            'SAML2_XML_md_AttributeAuthorityDescriptor' => true,
+        ];
 
         // now translate from the options we have, to specific protocols and roles
 
         // check SAML 2.0 protocol
-        $options = array('saml2', 'saml20-idp', 'saml20-sp', 'saml20-aa');
-        $this->protocols[SAML2_Const::NS_SAMLP] = (array_intersect($set, $options) !== array());
+        $options = ['saml2', 'saml20-idp', 'saml20-sp', 'saml20-aa'];
+        $this->protocols[SAML2_Const::NS_SAMLP] = (array_intersect($set, $options) !== []);
 
         // check SHIB 1.3 protocol
-        $options = array('shib13', 'shib13-idp', 'shib13-sp', 'shib13-aa');
-        $this->protocols['urn:oasis:names:tc:SAML:1.1:protocol'] = (array_intersect($set, $options) !== array());
+        $options = ['shib13', 'shib13-idp', 'shib13-sp', 'shib13-aa'];
+        $this->protocols['urn:oasis:names:tc:SAML:1.1:protocol'] = (array_intersect($set, $options) !== []);
 
         // check IdP
-        $options = array('saml2', 'shib13', 'saml20-idp', 'shib13-idp');
-        $this->roles['SAML2_XML_md_IDPSSODescriptor'] = (array_intersect($set, $options) !== array());
+        $options = ['saml2', 'shib13', 'saml20-idp', 'shib13-idp'];
+        $this->roles['SAML2_XML_md_IDPSSODescriptor'] = (array_intersect($set, $options) !== []);
 
         // check SP
-        $options = array('saml2', 'shib13', 'saml20-sp', 'shib13-sp');
-        $this->roles['SAML2_XML_md_SPSSODescriptor'] = (array_intersect($set, $options) !== array());
+        $options = ['saml2', 'shib13', 'saml20-sp', 'shib13-sp'];
+        $this->roles['SAML2_XML_md_SPSSODescriptor'] = (array_intersect($set, $options) !== []);
 
         // check AA
-        $options = array('saml2', 'shib13', 'saml20-aa', 'shib13-aa');
-        $this->roles['SAML2_XML_md_AttributeAuthorityDescriptor'] = (array_intersect($set, $options) !== array());
+        $options = ['saml2', 'shib13', 'saml20-aa', 'shib13-aa'];
+        $this->roles['SAML2_XML_md_AttributeAuthorityDescriptor'] = (array_intersect($set, $options) !== []);
 
-        $this->cacheId = sha1($this->cacheId . serialize($this->protocols) . serialize($this->roles));
+        $this->cacheId = sha1($this->cacheId.serialize($this->protocols).serialize($this->roles));
     }
 
-	/**
-	 * Retrieve the complete, signed metadata as text.
-	 *
-	 * This function will write the new metadata to the cache file, but will not return
-	 * the cached metadata.
-	 *
-	 * @return string  The metadata, as text.
-	 */
-	public function updateCachedMetadata() {
 
-		$ed = $this->getEntitiesDescriptor();
+    /**
+     * Retrieve the complete, signed metadata as text.
+     *
+     * This function will write the new metadata to the cache file, but will not return
+     * the cached metadata.
+     *
+     * @return string  The metadata, as text.
+     */
+    public function updateCachedMetadata()
+    {
+        $ed = $this->getEntitiesDescriptor();
         $ed = $this->exclude($ed);
         $ed = $this->filter($ed);
-		$this->addSignature($ed);
+        $this->addSignature($ed);
 
-		$xml = $ed->toXML();
-		$xml = $xml->ownerDocument->saveXML($xml);
+        $xml = $ed->toXML();
+        $xml = $xml->ownerDocument->saveXML($xml);
 
-		if ($this->cacheGenerated !== NULL) {
-			SimpleSAML\Logger::debug($this->logLoc . 'Saving generated metadata to cache.');
-			$this->addCacheItem($this->cacheId, $xml, time() + $this->cacheGenerated, $this->cacheTag);
-		}
+        if ($this->cacheGenerated !== null) {
+            Logger::debug($this->logLoc.'Saving generated metadata to cache.');
+            $this->addCacheItem($this->cacheId, $xml, time() + $this->cacheGenerated, $this->cacheTag);
+        }
 
-		return $xml;
-
-	}
-
-
-	/**
-	 * Retrieve the complete, signed metadata as text.
-	 *
-	 * @return string  The metadata, as text.
-	 */
-	public function getMetadata() {
-
-		if ($this->cacheGenerated !== NULL) {
-			$xml = $this->getCacheItem($this->cacheId, $this->cacheTag);
-			if ($xml !== NULL) {
-				SimpleSAML\Logger::debug($this->logLoc . 'Loaded generated metadata from cache.');
-				return $xml;
-			}
-		}
-
-		return $this->updateCachedMetadata();
-	}
+        return $xml;
+    }
 
 
-	/**
-	 * Update the cached copy of our metadata.
-	 */
-	public function updateCache() {
+    /**
+     * Retrieve the complete, signed metadata as text.
+     *
+     * @return string  The metadata, as text.
+     */
+    public function getMetadata()
+    {
+        if ($this->cacheGenerated !== null) {
+            $xml = $this->getCacheItem($this->cacheId, $this->cacheTag);
+            if ($xml !== null) {
+                Logger::debug($this->logLoc.'Loaded generated metadata from cache.');
+                return $xml;
+            }
+        }
 
-		foreach ($this->sources as $source) {
-			$source->updateCache();
-		}
+        return $this->updateCachedMetadata();
+    }
 
-		$this->updateCachedMetadata();
-	}
 
+    /**
+     * Update the cached copy of our metadata.
+     */
+    public function updateCache()
+    {
+        foreach ($this->sources as $source) {
+            $source->updateCache();
+        }
+
+        $this->updateCachedMetadata();
+    }
 }

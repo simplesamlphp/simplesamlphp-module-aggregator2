@@ -1,9 +1,9 @@
 <?php
 
 if (!isset($_REQUEST['id'])) {
-    throw new SimpleSAML_Error_BadRequest('Missing required parameter "id".');
+    throw new \SimpleSAML\Error\BadRequest('Missing required parameter "id".');
 }
-$id = (string) $_REQUEST['id'];
+$id = strval($_REQUEST['id']);
 
 $set = null;
 if (isset($_REQUEST['set'])) {
@@ -15,24 +15,24 @@ if (isset($_REQUEST['exclude'])) {
     $excluded_entities = explode(',', $_REQUEST['exclude']);
 }
 
-$aggregator = sspmod_aggregator2_Aggregator::getAggregator($id);
+$aggregator = \SimpleSAML\Module\aggregator2\Aggregator::getAggregator($id);
 $aggregator->setFilters($set);
 $aggregator->excludeEntities($excluded_entities);
 $xml = $aggregator->getMetadata();
 
 $mimetype = 'application/samlmetadata+xml';
-$allowedmimetypes = array(
+$allowedmimetypes = [
     'text/plain',
     'application/samlmetadata-xml',
     'application/xml',
-);
+];
 
 if (isset($_GET['mimetype']) && in_array($_GET['mimetype'], $allowedmimetypes)) {
     $mimetype = $_GET['mimetype'];
 }
 
 if ($mimetype === 'text/plain') {
-    $xml = SimpleSAML_Utilities::formatXMLString($xml);
+    $xml = \SimpleSAML\Utils\XML::::formatXMLString($xml);
 }
 
 header('Content-Type: '.$mimetype);

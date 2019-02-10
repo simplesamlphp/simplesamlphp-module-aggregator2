@@ -1,0 +1,47 @@
+sudo: required
+
+language: php
+
+php:
+  - 5.5
+  - 5.6
+  - 7.0
+  - 7.1
+  - 7.2
+  - 7.3
+
+env:
+  - SIMPLESAMLPHP_VERSION=1.16.*
+  
+matrix:
+  include:
+    - php: 5.6
+      env: SIMPLESAMLPHP_VERSION=dev-master
+    - php: 7.0
+      env: SIMPLESAMLPHP_VERSION=dev-master
+    - php: 7.1
+      env: SIMPLESAMLPHP_VERSION=dev-master
+    - php: 7.2
+      env: SIMPLESAMLPHP_VERSION=dev-master
+    - php: 7.3
+      env: SIMPLESAMLPHP_VERSION=dev-master
+  allow_failures:
+    - env: SIMPLESAMLPHP_VERSION=dev-master
+    - php: 7.3
+    - php: hhvm
+
+before_script:
+  - composer require "simplesamlphp/simplesamlphp:${SIMPLESAMLPHP_VERSION}" --no-update
+  - composer update --no-interaction
+
+script:
+  - bin/check-syntax.sh
+  - if [[ "$TRAVIS_PHP_VERSION" == "5.6" ]]; then php vendor/phpunit/phpunit/phpunit; else php vendor/phpunit/phpunit/phpunit --no-coverage; fi
+
+after_success:
+  # Codecov, need to edit bash uploader for incorrect TRAVIS_PYTHON_VERSION environment variable matching, at least until codecov/codecov-bash#133 is resolved
+  - curl -s https://codecov.io/bash > .codecov
+  - sed -i -e 's/TRAVIS_.*_VERSION/^TRAVIS_.*_VERSION=/' .codecov
+  - chmod +x .codecov
+  - if [[ $TRAVIS_PHP_VERSION == "5.6" ]]; then ./.codecov -X gcov; fi
+# - if [[ "$TRAVIS_PHP_VERSION" == "5.6" ]]; then bash <(curl -s https://codecov.io/bash); fi

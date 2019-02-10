@@ -1,4 +1,5 @@
 <?php
+
 $this->includeAtTemplateBase('includes/header.php');
 ?>
     <h1><?php echo $this->t('{aggregator2:aggregator:header}'); ?></h1>
@@ -11,9 +12,9 @@ if (count($this->data['sources']) === 0) {
 
     foreach ($this->data['sources'] as $id => $source) {
         $encId = urlencode($id);
-        $params = array(
+        $params = [
             'id' => $encId,
-        );
+        ];
         echo str_repeat(' ', 8)."<li>\n";
         echo str_repeat(' ', 12).'<a href="';
         echo SimpleSAML\Module::getModuleURL('aggregator2/get.php', $params).'">'.htmlspecialchars($id)."</a>\n";
