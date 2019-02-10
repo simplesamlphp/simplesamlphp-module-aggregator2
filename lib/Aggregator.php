@@ -7,7 +7,7 @@ use \SimpleSAML\Configuration;
 use \SimpleSAML\Logger;
 use \SimpleSAML\Utils\System;
 
-use \SAML2\Const as Constants;
+use \SAML2\Constants;
 use \SAML2\SignedElement;
 use \SAML2\Utils;
 use \SAML2\XML\md\EntitiesDescriptor;
