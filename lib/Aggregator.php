@@ -110,9 +110,9 @@ class Aggregator
     /**
      * An array of roles to filter the aggregate by. Keys can be any of:
      *
-     * - SAML2_XML_md_IDPSSODescriptor
-     * - SAML2_XML_md_SPSSODescriptor
-     * - SAML2_XML_md_AttributeAuthorityDescriptor
+     * - \SAML2\XML\md\IDPSSODescriptor
+     * - \SAML2\XML\md\SPSSODescriptor
+     * - \SAML2\XML\md\AttributeAuthorityDescriptor
      *
      * Values will be true if enabled, false otherwise.
      *
@@ -566,7 +566,7 @@ class Aggregator
      *
      * @param \SAML2\XML\md\EntitiesDescriptor $descriptor The EntitiesDescriptor to filter.
      *
-     * @return SAML2_XML_md_EntitiesDescriptor The EntitiesDescriptor with only the entities filtered.
+     * @return \SAML2\XML\md\EntitiesDescriptor The EntitiesDescriptor with only the entities filtered.
      */
     protected function filter(EntitiesDescriptor $descriptor)
     {
