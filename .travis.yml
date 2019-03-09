@@ -32,7 +32,7 @@ matrix:
 before_script:
   - composer require "simplesamlphp/simplesamlphp:${SIMPLESAMLPHP_VERSION}" --no-update
   - composer update --no-interaction
-  - if [[ "$TRAVIS_PHP_VERSION" == "7.3" ]]; then composer require --dev vimeo/psalm:0.3.92; fi
+  - if [[ "$TRAVIS_PHP_VERSION" == "7.3" ]]; then composer require --dev vimeo/psalm; fi
 
 script:
   - bin/check-syntax.sh
