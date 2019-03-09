@@ -82,7 +82,7 @@ class EntitySource
      *
      * @var bool
      */
-    protected $updateAttempted;
+    protected $updateAttempted = false;
 
 
     /**
@@ -134,6 +134,7 @@ class EntitySource
         }
 
         $doc = new \DOMDocument();
+        /** @var string $data */
         $res = $doc->loadXML($data);
         if (!$res) {
             Logger::error($this->logLoc.'Error parsing XML from '.var_export($this->url, true));
@@ -190,6 +191,7 @@ class EntitySource
 
     /**
      * Attempt to update our cache file.
+     * @return void
      */
     public function updateCache()
     {
@@ -239,7 +241,7 @@ class EntitySource
 
         $cacheFile = $this->aggregator->getCacheFile($this->cacheId);
 
-        if (!file_exists($cacheFile)) {
+        if (is_null($cacheFile) || !file_exists($cacheFile)) {
             Logger::error($this->logLoc . 'No cached metadata available.');
             return null;
         }
@@ -247,7 +249,7 @@ class EntitySource
         Logger::debug($this->logLoc.'Using cached metadata from '.var_export($cacheFile, true));
 
         $metadata = file_get_contents($cacheFile);
-        if ($metadata !== null) {
+        if ($metadata !== false) {
             $this->metadata = unserialize($metadata);
             return $this->metadata;
         }

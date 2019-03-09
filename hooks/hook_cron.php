@@ -4,6 +4,7 @@
  * cron hook to update aggregator2 metadata.
  *
  * @param array &$croninfo  Output
+ * @return void
  */
 function aggregator2_hook_cron(&$croninfo)
 {
