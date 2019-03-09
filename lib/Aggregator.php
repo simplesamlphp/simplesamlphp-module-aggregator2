@@ -84,7 +84,7 @@ class Aggregator
     /**
      * Duration we should cache generated metadata.
      *
-     * @var int
+     * @var int|null
      */
     protected $cacheGenerated;
 
@@ -236,7 +236,7 @@ class Aggregator
             if ($sc === false) {
                 throw new Exception('Unable to load certificate file from '.var_export($signCert, true));
             }
-            $this->sc = $sc;
+            $this->signCert = $sc;
         }
 
         $this->signAlg = $config->getString('sign.algorithm', XMLSecurityKey::RSA_SHA1);
@@ -436,7 +436,7 @@ class Aggregator
      */
     protected function addSignature(SignedElement $element)
     {
-        if ($this->signKey === false) {
+        if ($this->signKey === null) {
             return;
         }
 

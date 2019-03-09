@@ -234,6 +234,7 @@ class EntitySource
 
         if (!$this->aggregator->isCacheValid($this->cacheId, $this->cacheTag)) {
             $this->updateCache();
+            /** @var \SAML2\XML\md\EntityDescriptor|\SAML2\XML\md\EntitiesDescriptor|null $this->metadata */
             if ($this->metadata !== null) {
                 return $this->metadata;
             }
