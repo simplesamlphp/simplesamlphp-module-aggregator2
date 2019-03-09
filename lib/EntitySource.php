@@ -61,7 +61,7 @@ class EntitySource
      *
      * @var \SAML2\XML\md\EntitiesDescriptor|\SAML2\XML\md\EntityDescriptor|null
      */
-    protected $metadata;
+    protected $metadata = null;
 
     /**
      * The cache ID.
@@ -127,8 +127,9 @@ class EntitySource
             $context['ssl']['CN_match'] = parse_url($this->url, PHP_URL_HOST);
         }
 
-        $data = HTTP::fetch($this->url, $context);
-        if ($data === false || $data === null) {
+        try {
+            $data = HTTP::fetch($this->url, $context, false);
+        } catch (\SimpleSAML\Error\Exception) {
             Logger::error($this->logLoc.'Unable to load metadata from '.var_export($this->url, true));
             return null;
         }

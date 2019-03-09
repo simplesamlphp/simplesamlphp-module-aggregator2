@@ -220,10 +220,11 @@ class Aggregator
         $signKey = $config->getString('sign.privatekey', null);
         if ($signKey !== null) {
             $signKey = System::resolvePath($signKey, $certDir);
-            $this->signKey = @file_get_contents($signKey);
-            if ($this->signKey === null) {
+            $sk = @file_get_contents($signKey);
+            if ($sk === false) {
                 throw new Exception('Unable to load private key from '.var_export($signKey, true));
             }
+            $this->signKey = $sk;
         }
 
         $this->signKeyPass = $config->getString('sign.privatekey_pass', null);
@@ -231,10 +232,11 @@ class Aggregator
         $signCert = $config->getString('sign.certificate', null);
         if ($signCert !== null) {
             $signCert = System::resolvePath($signCert, $certDir);
-            $this->signCert = @file_get_contents($signCert);
-            if ($this->signCert === null) {
+            $sc = @file_get_contents($signCert);
+            if ($sc === false) {
                 throw new Exception('Unable to load certificate file from '.var_export($signCert, true));
             }
+            $this->sc = $sc;
         }
 
         $this->signAlg = $config->getString('sign.algorithm', XMLSecurityKey::RSA_SHA1);
@@ -244,7 +246,7 @@ class Aggregator
 
         $this->sslCAFile = $config->getString('ssl.cafile', null);
 
-        $this->regInfo = $config->getArray('RegistrationInfo', null);
+        $this->regInfo = $config->getArray('RegistrationInfo', []);
 
         $this->initSources($config->getConfigList('sources'));
     }
@@ -434,7 +436,7 @@ class Aggregator
      */
     protected function addSignature(SignedElement $element)
     {
-        if ($this->signKey === null) {
+        if ($this->signKey === false) {
             return;
         }
 
@@ -461,14 +463,8 @@ class Aggregator
      *
      * @return array An array containing all the EntityDescriptors found.
      */
-    private static function extractEntityDescriptors($entity)
+    private static function extractEntityDescriptors(EntitiesDescriptor $entity)
     {
-        assert('$entity instanceof EntitiesDescriptor');
-
-        if (!($entity instanceof EntitiesDescriptor)) {
-            return [];
-        }
-
         $results = [];
         foreach ($entity->children as $child) {
             if ($child instanceof EntityDescriptor) {
@@ -493,7 +489,7 @@ class Aggregator
         $now = time();
 
         // add RegistrationInfo extension if enabled
-        if ($this->regInfo !== null) {
+        if (!empty($this->regInfo)) {
             $ri = new RegistrationInfo();
             $ri->registrationInstant = $now;
             foreach ($this->regInfo as $riName => $riValues) {
