@@ -84,7 +84,7 @@ class Aggregator
     /**
      * Duration we should cache generated metadata.
      *
-     * @var int
+     * @var int|null
      */
     protected $cacheGenerated;
 
@@ -160,7 +160,7 @@ class Aggregator
      *
      * @var string
      */
-    protected $cacheId;
+    protected $cacheId = 'dummy';
 
     /**
      * The cache tag for our generated metadata.
@@ -170,7 +170,7 @@ class Aggregator
      *
      * @var string
      */
-    protected $cacheTag;
+    protected $cacheTag = 'dummy';
 
     /**
      * The registration information for our generated metadata.
@@ -220,10 +220,11 @@ class Aggregator
         $signKey = $config->getString('sign.privatekey', null);
         if ($signKey !== null) {
             $signKey = System::resolvePath($signKey, $certDir);
-            $this->signKey = @file_get_contents($signKey);
-            if ($this->signKey === null) {
+            $sk = @file_get_contents($signKey);
+            if ($sk === false) {
                 throw new Exception('Unable to load private key from '.var_export($signKey, true));
             }
+            $this->signKey = $sk;
         }
 
         $this->signKeyPass = $config->getString('sign.privatekey_pass', null);
@@ -231,10 +232,11 @@ class Aggregator
         $signCert = $config->getString('sign.certificate', null);
         if ($signCert !== null) {
             $signCert = System::resolvePath($signCert, $certDir);
-            $this->signCert = @file_get_contents($signCert);
-            if ($this->signCert === null) {
+            $sc = @file_get_contents($signCert);
+            if ($sc === false) {
                 throw new Exception('Unable to load certificate file from '.var_export($signCert, true));
             }
+            $this->signCert = $sc;
         }
 
         $this->signAlg = $config->getString('sign.algorithm', XMLSecurityKey::RSA_SHA1);
@@ -244,7 +246,7 @@ class Aggregator
 
         $this->sslCAFile = $config->getString('ssl.cafile', null);
 
-        $this->regInfo = $config->getArray('RegistrationInfo', null);
+        $this->regInfo = $config->getArray('RegistrationInfo', []);
 
         $this->initSources($config->getConfigList('sources'));
     }
@@ -256,6 +258,7 @@ class Aggregator
      * This is called from the constructor, and can be overridden in subclasses.
      *
      * @param array $sources  The sources as an array of SimpleSAML_Configuration objects.
+     * @return void
      */
     protected function initSources(array $sources)
     {
@@ -269,6 +272,7 @@ class Aggregator
      * Return an instance of the aggregator with the given id.
      *
      * @param string $id  The id of the aggregator.
+     * @return Aggregator
      */
     public static function getAggregator($id)
     {
@@ -297,6 +301,7 @@ class Aggregator
      * @param string $data  The data.
      * @param int $expires  The timestamp the data expires.
      * @param string|null $tag  An extra tag that can be used to verify the validity of the cached data.
+     * @return void
      */
     public function addCacheItem($id, $data, $expires, $tag = null)
     {
@@ -305,7 +310,7 @@ class Aggregator
         assert('is_int($expires)');
         assert('is_null($tag) || is_string($tag)');
 
-        $cacheFile = $this->cacheDirectory.'/'.$id;
+        $cacheFile = strval($this->cacheDirectory).'/'.$id;
         try {
             System::writeFile($cacheFile, $data);
         } catch (\Exception $e) {
@@ -339,7 +344,7 @@ class Aggregator
         assert('is_string($id)');
         assert('is_null($tag) || is_string($tag)');
 
-        $cacheFile = $this->cacheDirectory.'/'.$id;
+        $cacheFile = strval($this->cacheDirectory).'/'.$id;
         if (!file_exists($cacheFile)) {
             return false;
         }
@@ -390,7 +395,7 @@ class Aggregator
             return null;
         }
 
-        $cacheFile = $this->cacheDirectory.'/'.$id;
+        $cacheFile = strval($this->cacheDirectory).'/'.$id;
         return @file_get_contents($cacheFile);
     }
 
@@ -405,7 +410,7 @@ class Aggregator
     {
         assert('is_string($id)');
 
-        $cacheFile = $this->cacheDirectory.'/'.$id;
+        $cacheFile = strval($this->cacheDirectory).'/'.$id;
         if (!file_exists($cacheFile)) {
             return null;
         }
@@ -427,6 +432,7 @@ class Aggregator
 
     /**
      * Sign the generated EntitiesDescriptor.
+     * @return void
      */
     protected function addSignature(SignedElement $element)
     {
@@ -434,6 +440,7 @@ class Aggregator
             return;
         }
 
+        /** @var string $this->signAlg */
         $privateKey = new XMLSecurityKey($this->signAlg, ['type' => 'private']);
         if ($this->signKeyPass !== null) {
             $privateKey->passphrase = $this->signKeyPass;
@@ -456,14 +463,8 @@ class Aggregator
      *
      * @return array An array containing all the EntityDescriptors found.
      */
-    private static function extractEntityDescriptors($entity)
+    private static function extractEntityDescriptors(EntitiesDescriptor $entity)
     {
-        assert('$entity instanceof EntitiesDescriptor');
-
-        if (!($entity instanceof EntitiesDescriptor)) {
-            return [];
-        }
-
         $results = [];
         foreach ($entity->children as $child) {
             if ($child instanceof EntityDescriptor) {
@@ -488,7 +489,7 @@ class Aggregator
         $now = time();
 
         // add RegistrationInfo extension if enabled
-        if ($this->regInfo !== null) {
+        if (!empty($this->regInfo)) {
             $ri = new RegistrationInfo();
             $ri->registrationInstant = $now;
             foreach ($this->regInfo as $riName => $riValues) {
@@ -607,6 +608,7 @@ class Aggregator
      * Set this aggregator to exclude a set of entities from the resulting aggregate.
      *
      * @param array|null $entities The entity IDs of the entities to exclude.
+     * @return void
      */
     public function excludeEntities($entities)
     {
@@ -634,6 +636,7 @@ class Aggregator
      * - 'shib13-aa': all SHIB1.3-capable attribute authorities.
      *
      * @param array|null $set An array of the different roles and protocols to filter by.
+     * @return void
      */
     public function setFilters($set)
     {
@@ -728,6 +731,7 @@ class Aggregator
 
     /**
      * Update the cached copy of our metadata.
+     * @return void
      */
     public function updateCache()
     {
