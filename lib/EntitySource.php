@@ -129,7 +129,7 @@ class EntitySource
 
         try {
             $data = HTTP::fetch($this->url, $context, false);
-        } catch (\SimpleSAML\Error\Exception) {
+        } catch (\SimpleSAML\Error\Exception $e) {
             Logger::error($this->logLoc.'Unable to load metadata from '.var_export($this->url, true));
             return null;
         }
