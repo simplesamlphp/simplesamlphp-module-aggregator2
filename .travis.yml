@@ -11,7 +11,7 @@ php:
   - 7.3
 
 env:
-  - SIMPLESAMLPHP_VERSION=1.16.*
+  - SIMPLESAMLPHP_VERSION=1.17.*
   
 matrix:
   include:
@@ -28,11 +28,11 @@ matrix:
   allow_failures:
     - env: SIMPLESAMLPHP_VERSION=dev-master
     - php: 7.3
-    - php: hhvm
 
 before_script:
   - composer require "simplesamlphp/simplesamlphp:${SIMPLESAMLPHP_VERSION}" --no-update
   - composer update --no-interaction
+  - if [[ "$TRAVIS_PHP_VERSION" == "7.3" ]]; then composer require --dev vimeo/psalm:0.3.92; fi
 
 script:
   - bin/check-syntax.sh

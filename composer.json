@@ -16,11 +16,11 @@
         }
     ],
     "require": {
-        "simplesamlphp/composer-module-installer": "~1.0"
+        "simplesamlphp/composer-module-installer": "~1.1"
     },
     "require-dev": {
-        "simplesamlphp/simplesamlphp": "^1.16",
-        "phpunit/phpunit": "~4.8.35"
+        "simplesamlphp/simplesamlphp": "^1.17",
+        "phpunit/phpunit": "~4.8.36"
     }
 }
 
