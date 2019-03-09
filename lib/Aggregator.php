@@ -158,9 +158,9 @@ class Aggregator
     /**
      * The cache ID for our generated metadata.
      *
-     * @var string|null
+     * @var string
      */
-    protected $cacheId = null;
+    protected $cacheId = 'dummy';
 
     /**
      * The cache tag for our generated metadata.
@@ -168,9 +168,9 @@ class Aggregator
      * This tag is used to make sure that a config change
      * invalidates our cached metadata.
      *
-     * @var string|null
+     * @var string
      */
-    protected $cacheTag = null;
+    protected $cacheTag = 'dummy';
 
     /**
      * The registration information for our generated metadata.
