@@ -257,7 +257,7 @@ class Aggregator
      *
      * This is called from the constructor, and can be overridden in subclasses.
      *
-     * @param array $sources  The sources as an array of SimpleSAML_Configuration objects.
+     * @param array $sources  The sources as an array of \SimpleSAML\Configuration objects.
      * @return void
      */
     protected function initSources(array $sources)
