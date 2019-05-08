@@ -9,7 +9,7 @@ for FILE in $(find config-templates hooks lib www -name "*.php"); do
     if ! $PHP -l "$FILE" > /dev/null 2>&1
     then
         echo "Syntax check failed for ${FILE}"
-	RETURN=$(expr ${RETURN} + 1)
+	RETURN=$((RETURN + 1))
     fi
 done
 
