@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Hook to add the aggregator2 lik to the frontpage.
+ * Hook to add the aggregator2 link to the frontpage.
  *
  * @param array &$links The links on the frontpage, split into sections.
  * @return void
