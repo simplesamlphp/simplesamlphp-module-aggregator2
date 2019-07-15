@@ -510,7 +510,7 @@ class Aggregator
 
         foreach ($this->sources as $source) {
             $m = $source->getMetadata();
-            if ($m === NULL) {
+            if ($m === null) {
                 continue;
             }
             if ($m instanceof EntityDescriptor) {
