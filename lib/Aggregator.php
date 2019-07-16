@@ -13,6 +13,7 @@ use \SAML2\Utils;
 use \SAML2\XML\md\EntitiesDescriptor;
 use \SAML2\XML\md\EntityDescriptor;
 use \SAML2\XML\mdrpi\RegistrationInfo;
+use \SAML2\XML\mdrpi\PublicationInfo;
 
 use \RobRichards\XMLSecLibs\XMLSecurityKey;
 
