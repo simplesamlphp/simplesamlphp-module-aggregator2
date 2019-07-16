@@ -179,6 +179,13 @@ class Aggregator
      */
     protected $regInfo;
 
+    /**
+     * The publication information for our generated metadata.
+     *
+     * @var array
+     */
+    protected $pubInfo;
+
 
     /**
      * Initialize this aggregator.
@@ -247,6 +254,7 @@ class Aggregator
         $this->sslCAFile = $config->getString('ssl.cafile', null);
 
         $this->regInfo = $config->getArray('RegistrationInfo', []);
+        $this->pubInfo = $config->getArray('PublicationInfo', []);
 
         $this->initSources($config->getConfigList('sources'));
     }
@@ -491,17 +499,17 @@ class Aggregator
         // add RegistrationInfo extension if enabled
         if (!empty($this->regInfo)) {
             $ri = new RegistrationInfo();
-            $ri->registrationInstant = $now;
+            $ri->setRegistrationInstant($now);
             foreach ($this->regInfo as $riName => $riValues) {
                 switch ($riName) {
                     case 'authority':
-                        $ri->registrationAuthority = $riValues;
+                        $ri->setRegistrationAuthority($riValues);
                         break;
                     case 'instant':
-                        $ri->registrationInstant = Utils::xsDateTimeToTimestamp($riValues);
+                        $ri->setRegistrationInstant(Utils::xsDateTimeToTimestamp($riValues));
                         break;
                     case 'policies':
-                        $ri->RegistrationPolicy = $riValues;
+                        $ri->setRegistrationPolicy($riValues);
                         break;
                 }
             }
@@ -532,6 +540,29 @@ class Aggregator
                 }
             }
             $ret->addExtension($pi);
+        }
+
+        // add PublicationInfo extension if enabled
+        if (!empty($this->pubInfo)) {
+            $pi = new PublicationInfo();
+            $pi->setCreationInstant($now);
+            foreach ($this->pubInfo as $piName => $piValues) {
+                switch ($piName) {
+                    case 'publisher':
+                        $pi->setPublisher($piValues);
+                        break;
+                    case 'publicationId':
+                        $pi->setPublicationId($piValues);
+                        break;
+                    case 'instant':
+                        $pi->setCreationInstant(Utils::xsDateTimeToTimestamp($piValues));
+                        break;
+                    case 'policies':
+                        $pi->setUsagePolicy($piValues);
+                        break;
+                }
+            }
+            $ret->Extensions[] = $pi;
         }
 
         foreach ($this->sources as $source) {
