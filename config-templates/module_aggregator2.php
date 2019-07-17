@@ -120,6 +120,7 @@ $config = [
 
         /*
         'PublicationInfo' => [
+            // publisher is a mandatory setting
             'publisher' => 'some-identifier',
 
             'publicationId' => 'some-opaque-identifier',
