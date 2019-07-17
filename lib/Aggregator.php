@@ -512,6 +512,9 @@ class Aggregator
                     case 'policies':
                         $ri->setRegistrationPolicy($riValues);
                         break;
+                    default:
+                        Logger::warning("Unable to apply unknown configuration setting \$config['RegistrationInfo']['".strval($riValues)."'; skipping.");
+                        break;
                 }
             }
             $ret->Extensions[] = $ri;
@@ -534,6 +537,9 @@ class Aggregator
                         break;
                     case 'policies':
                         $pi->setUsagePolicy($piValues);
+                        break;
+                    default:
+                        Logger::warning("Unable to apply unknown configuration setting \$config['PublicationInfo']['".strval($piValues)."'; skipping.");
                         break;
                 }
             }
