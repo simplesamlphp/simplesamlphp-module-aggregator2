@@ -106,5 +106,30 @@ $config = [
          * If specified, the certificate will be included in the signature in the metadata.
          */
         'sign.certificate' => 'metadata.crt',
+
+        /*
+        'RegistrationInfo' => [
+            'authority' => 'some-identifier',
+
+            // Default to current time
+            'instant' => '2008-01-17T11:28:03.577Z',
+
+            'policies' => [],
+        ],
+        */
+
+        /*
+        'PublicationInfo' => [
+            // publisher is a mandatory setting
+            'publisher' => 'some-identifier',
+
+            'publicationId' => 'some-opaque-identifier',
+
+            // Default to current time
+            'instant' => '2008-01-17T11:28:03.577Z',
+
+            'policies' => [],
+        ],
+        */
     ],
 ];
