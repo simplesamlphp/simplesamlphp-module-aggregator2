@@ -257,7 +257,7 @@ class Aggregator
         $this->regInfo = $config->getArray('RegistrationInfo', []);
         $this->pubInfo = $config->getArray('PublicationInfo', []);
 
-        $this->initSources($config->getConfigList('sources'));
+        $this->initSources($config->getConfigItem('sources'));
     }
 
 
