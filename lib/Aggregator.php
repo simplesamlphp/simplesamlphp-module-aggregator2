@@ -475,7 +475,7 @@ class Aggregator
     private static function extractEntityDescriptors(EntitiesDescriptor $entity)
     {
         $results = [];
-        foreach ($entity->children as $child) {
+        foreach ($entity->getChildren() as $child) {
             if ($child instanceof EntityDescriptor) {
                 $results[] = $child;
                 continue;
@@ -517,7 +517,7 @@ class Aggregator
                         break;
                 }
             }
-            $ret->Extensions[] = $ri;
+            $ret->addExtension($ri);
         }
 
         // add PublicationInfo extension if enabled
@@ -543,7 +543,7 @@ class Aggregator
                         break;
                 }
             }
-            $ret->Extensions[] = $pi;
+            $ret->addExtension($pi);
         }
 
         foreach ($this->sources as $source) {
@@ -552,13 +552,13 @@ class Aggregator
                 continue;
             }
             if ($m instanceof EntityDescriptor) {
-                $ret->children[] = $m;
+                $ret->addChildren($m);
             } elseif ($m instanceof EntitiesDescriptor) {
-                $ret->children = array_merge($ret->children, self::extractEntityDescriptors($m));
+                $ret->setChildren(array_merge($ret->getChildren(), self::extractEntityDescriptors($m)));
             }
         }
 
-        $ret->children = array_unique($ret->children, SORT_REGULAR);
+        $ret->setChildren(array_unique($ret->getChildren(), SORT_REGULAR));
         $ret->validUntil = $now + $this->validLength;
 
         return $ret;
@@ -580,7 +580,7 @@ class Aggregator
         }
 
         $filtered = [];
-        foreach ($descriptor->children as $child) {
+        foreach ($descriptor->getChildren() as $child) {
             if ($child instanceof EntityDescriptor) {
                 if (in_array($child->entityID, $this->excluded)) {
                     continue;
@@ -593,7 +593,7 @@ class Aggregator
             }
         }
 
-        $descriptor->children = $filtered;
+        $descriptor->setChildren($filtered);
         return $descriptor;
     }
 
@@ -617,7 +617,7 @@ class Aggregator
         $enabled_protos = array_keys($this->protocols, true);
 
         $filtered = [];
-        foreach ($descriptor->children as $child) {
+        foreach ($descriptor->getChildren() as $child) {
             if ($child instanceof EntityDescriptor) {
                 foreach ($child->RoleDescriptor as $role) {
                     if (in_array(get_class($role), $enabled_roles)) {
@@ -637,7 +637,7 @@ class Aggregator
             }
         }
 
-        $descriptor->children = $filtered;
+        $descriptor->setChildren($filtered);
         return $descriptor;
     }
 
