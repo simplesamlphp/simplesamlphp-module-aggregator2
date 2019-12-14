@@ -77,13 +77,13 @@ $config = [
          * This option is optional. If unspecified, the metadata will be generated
          * on every request.
          */
-        'cache.generated' => 24*60*60,
+        'cache.generated' => 24 * 60 * 60,
 
         /*
          * The generated metadata will have a validUntil set to the time it is generated
          * plus this number of seconds.
          */
-        'valid.length' => 7*24*60*60,
+        'valid.length' => 7 * 24 * 60 * 60,
 
         /*
          * The private key we should use to sign the metadata, in pem-format.

@@ -16,5 +16,5 @@ try {
     $xml = \SimpleSAML\Utils\XML::formatXMLString($xml);
     echo $xml;
 } catch (\Exception $e) {
-    fwrite(STDERR, $e->getMessage()."\n");
+    fwrite(STDERR, $e->getMessage() . "\n");
 }

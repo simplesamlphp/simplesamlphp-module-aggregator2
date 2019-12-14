@@ -35,13 +35,13 @@ if ($mimetype === 'text/plain') {
     $xml = \SimpleSAML\Utils\XML::formatXMLString($xml);
 }
 
-header('Content-Type: '.$mimetype);
+header('Content-Type: ' . $mimetype);
 header('Content-Length: ' . strlen($xml));
 
 /*
  * At this point, if the ID was forged, getMetadata() would
  * have failed to find a valid metadata set, so we can trust it.
  */
-header('Content-Disposition: filename='.$id.'.xml');
+header('Content-Disposition: filename=' . $id . '.xml');
 
 echo $xml;

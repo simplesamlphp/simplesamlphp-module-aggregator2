@@ -2,20 +2,18 @@
 
 namespace SimpleSAML\Module\aggregator2;
 
-use \SimpleSAML\Error\Exception;
-use \SimpleSAML\Configuration;
-use \SimpleSAML\Logger;
-use \SimpleSAML\Utils\System;
-
-use \SAML2\Constants;
-use \SAML2\SignedElement;
-use \SAML2\Utils;
-use \SAML2\XML\md\EntitiesDescriptor;
-use \SAML2\XML\md\EntityDescriptor;
-use \SAML2\XML\mdrpi\RegistrationInfo;
-use \SAML2\XML\mdrpi\PublicationInfo;
-
-use \RobRichards\XMLSecLibs\XMLSecurityKey;
+use RobRichards\XMLSecLibs\XMLSecurityKey;
+use SAML2\Constants;
+use SAML2\SignedElement;
+use SAML2\Utils;
+use SAML2\XML\md\EntitiesDescriptor;
+use SAML2\XML\md\EntityDescriptor;
+use SAML2\XML\mdrpi\RegistrationInfo;
+use SAML2\XML\mdrpi\PublicationInfo;
+use SimpleSAML\Error\Exception;
+use SimpleSAML\Configuration;
+use SimpleSAML\Logger;
+use SimpleSAML\Utils\System;
 
 /**
  * Class which implements a basic metadata aggregator.
@@ -196,10 +194,10 @@ class Aggregator
      */
     protected function __construct($id, Configuration $config)
     {
-        assert('is_string($id)');
+        assert(is_string($id));
 
         $this->id = $id;
-        $this->logLoc = 'aggregator2:'.$this->id.': ';
+        $this->logLoc = 'aggregator2:' . $this->id . ': ';
 
         $this->cronTag = $config->getString('cron.tag', null);
 
@@ -230,7 +228,7 @@ class Aggregator
             $signKey = System::resolvePath($signKey, $certDir);
             $sk = @file_get_contents($signKey);
             if ($sk === false) {
-                throw new Exception('Unable to load private key from '.var_export($signKey, true));
+                throw new \Exception('Unable to load private key from ' . var_export($signKey, true));
             }
             $this->signKey = $sk;
         }
@@ -242,14 +240,14 @@ class Aggregator
             $signCert = System::resolvePath($signCert, $certDir);
             $sc = @file_get_contents($signCert);
             if ($sc === false) {
-                throw new Exception('Unable to load certificate file from '.var_export($signCert, true));
+                throw new \Exception('Unable to load certificate file from ' . var_export($signCert, true));
             }
             $this->signCert = $sc;
         }
 
         $this->signAlg = $config->getString('sign.algorithm', XMLSecurityKey::RSA_SHA1);
         if (!in_array($this->signAlg, self::$SUPPORTED_SIGNATURE_ALGORITHMS)) {
-            throw new Exception('Unsupported signature algorithm '.var_export($this->signAlg, true));
+            throw new \Exception('Unsupported signature algorithm ' . var_export($this->signAlg, true));
         }
 
         $this->sslCAFile = $config->getString('ssl.cafile', null);
@@ -314,29 +312,29 @@ class Aggregator
      */
     public function addCacheItem($id, $data, $expires, $tag = null)
     {
-        assert('is_string($id)');
-        assert('is_string($data)');
-        assert('is_int($expires)');
-        assert('is_null($tag) || is_string($tag)');
+        assert(is_string($id));
+        assert(is_string($data));
+        assert(is_int($expires));
+        assert(is_null($tag) || is_string($tag));
 
-        $cacheFile = strval($this->cacheDirectory).'/'.$id;
+        $cacheFile = strval($this->cacheDirectory) . '/' . $id;
         try {
             System::writeFile($cacheFile, $data);
         } catch (\Exception $e) {
-            Logger::warning($this->logLoc.'Unable to write to cache file '.var_export($cacheFile, true));
+            Logger::warning($this->logLoc . 'Unable to write to cache file ' . var_export($cacheFile, true));
             return;
         }
 
         $expireInfo = (string)$expires;
         if ($tag !== null) {
-            $expireInfo .= ':'.$tag;
+            $expireInfo .= ':' . $tag;
         }
 
-        $expireFile = $cacheFile.'.expire';
+        $expireFile = $cacheFile . '.expire';
         try {
             System::writeFile($expireFile, $expireInfo);
         } catch (\Exception $e) {
-            Logger::warning($this->logLoc.'Unable to write expiration info to '.var_export($expireFile, true));
+            Logger::warning($this->logLoc . 'Unable to write expiration info to ' . var_export($expireFile, true));
         }
     }
 
@@ -350,15 +348,15 @@ class Aggregator
      */
     public function isCacheValid($id, $tag = null)
     {
-        assert('is_string($id)');
-        assert('is_null($tag) || is_string($tag)');
+        assert(is_string($id));
+        assert(is_null($tag) || is_string($tag));
 
-        $cacheFile = strval($this->cacheDirectory).'/'.$id;
+        $cacheFile = strval($this->cacheDirectory) . '/' . $id;
         if (!file_exists($cacheFile)) {
             return false;
         }
 
-        $expireFile = $cacheFile.'.expire';
+        $expireFile = $cacheFile . '.expire';
         if (!file_exists($expireFile)) {
             return false;
         }
@@ -397,14 +395,14 @@ class Aggregator
      */
     public function getCacheItem($id, $tag = null)
     {
-        assert('is_string($id)');
-        assert('is_null($tag) || is_string($tag)');
+        assert(is_string($id));
+        assert(is_null($tag) || is_string($tag));
 
         if (!$this->isCacheValid($id, $tag)) {
             return null;
         }
 
-        $cacheFile = strval($this->cacheDirectory).'/'.$id;
+        $cacheFile = strval($this->cacheDirectory) . '/' . $id;
         return @file_get_contents($cacheFile);
     }
 
@@ -417,9 +415,9 @@ class Aggregator
      */
     public function getCacheFile($id)
     {
-        assert('is_string($id)');
+        assert(is_string($id));
 
-        $cacheFile = strval($this->cacheDirectory).'/'.$id;
+        $cacheFile = strval($this->cacheDirectory) . '/' . $id;
         if (!file_exists($cacheFile)) {
             return null;
         }
@@ -513,7 +511,10 @@ class Aggregator
                         $ri->setRegistrationPolicy($riValues);
                         break;
                     default:
-                        Logger::warning("Unable to apply unknown configuration setting \$config['RegistrationInfo']['".strval($riValues)."'; skipping.");
+                        Logger::warning(
+                            "Unable to apply unknown configuration setting \$config['RegistrationInfo']['"
+                            . strval($riValues) . "'; skipping."
+                        );
                         break;
                 }
             }
@@ -539,7 +540,10 @@ class Aggregator
                         $pi->setUsagePolicy($piValues);
                         break;
                     default:
-                        Logger::warning("Unable to apply unknown configuration setting \$config['PublicationInfo']['".strval($piValues)."'; skipping.");
+                        Logger::warning(
+                            "Unable to apply unknown configuration setting \$config['PublicationInfo']['"
+                            . strval($piValues) . "'; skipping."
+                        );
                         break;
                 }
             }
@@ -629,7 +633,6 @@ class Aggregator
                         }
                     }
                 }
-
             }
 
             if ($child instanceof EntitiesDescriptor) {
@@ -650,7 +653,7 @@ class Aggregator
      */
     public function excludeEntities($entities)
     {
-        assert('is_array($entities) || is_null($entities)');
+        assert(is_array($entities) || is_null($entities));
 
         if ($entities === null) {
             return;
@@ -678,7 +681,7 @@ class Aggregator
      */
     public function setFilters($set)
     {
-        assert('is_array($set) || is_null($set)');
+        assert(is_array($set) || is_null($set));
 
         if ($set === null) {
             return;
@@ -740,7 +743,7 @@ class Aggregator
         $xml = $xml->ownerDocument->saveXML($xml);
 
         if ($this->cacheGenerated !== null) {
-            Logger::debug($this->logLoc.'Saving generated metadata to cache.');
+            Logger::debug($this->logLoc . 'Saving generated metadata to cache.');
             $this->addCacheItem($this->cacheId, $xml, time() + $this->cacheGenerated, $this->cacheTag);
         }
 
@@ -758,7 +761,7 @@ class Aggregator
         if ($this->cacheGenerated !== null) {
             $xml = $this->getCacheItem($this->cacheId, $this->cacheTag);
             if ($xml !== null) {
-                Logger::debug($this->logLoc.'Loaded generated metadata from cache.');
+                Logger::debug($this->logLoc . 'Loaded generated metadata from cache.');
                 return $xml;
             }
         }
