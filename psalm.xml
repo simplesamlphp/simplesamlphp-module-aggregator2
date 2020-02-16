@@ -5,8 +5,10 @@
     totallyTyped="false"
 >
     <projectFiles>
+        <directory name="bin" />
         <directory name="lib" />
         <directory name="hooks" />
+        <directory name="tests" />
         <directory name="www" />
     </projectFiles>
 
@@ -28,6 +30,20 @@
         <MissingParamType errorLevel="info" />
         <UnusedClass errorLevel="info" />
         <PossiblyUnusedMethod errorLevel="info" />
+
+        <!-- Ignore MissingFile -->
+        <MissingFile>
+            <errorLevel type="suppress">
+                <file name="bin/get.php" />
+                <file name="bin/update.php" />
+            </errorLevel>
+        </MissingFile>
+
+        <!-- Ignore UnresolvableInclude -->
+        <UnresolvableInclude>
+            <errorLevel type="suppress">
+                <file name="tests/bootstrap.php" />
+            </errorLevel>
+        </UnresolvableInclude>
     </issueHandlers>
 </psalm>
-

@@ -9,4 +9,3 @@ if (file_exists($linkPath) === false) {
     echo "Linking '$linkPath' to '$projectRoot'\n";
     symlink($projectRoot, $linkPath);
 }
-

@@ -2,6 +2,7 @@
 
 namespace SimpleSAML\Module\aggregator2;
 
+use Exception;
 use RobRichards\XMLSecLibs\XMLSecurityKey;
 use SAML2\Constants;
 use SAML2\SignedElement;
@@ -10,7 +11,6 @@ use SAML2\XML\md\EntitiesDescriptor;
 use SAML2\XML\md\EntityDescriptor;
 use SAML2\XML\mdrpi\RegistrationInfo;
 use SAML2\XML\mdrpi\PublicationInfo;
-use SimpleSAML\Error\Exception;
 use SimpleSAML\Configuration;
 use SimpleSAML\Logger;
 use SimpleSAML\Utils\System;
@@ -192,10 +192,8 @@ class Aggregator
      * @param string $id  The id of this aggregator.
      * @param \SimpleSAML\Configuration $config  The configuration for this aggregator.
      */
-    protected function __construct($id, Configuration $config)
+    protected function __construct(string $id, Configuration $config)
     {
-        assert(is_string($id));
-
         $this->id = $id;
         $this->logLoc = 'aggregator2:' . $this->id . ': ';
 
@@ -218,7 +216,7 @@ class Aggregator
         // configure filters
         $this->setFilters($config->getArrayize('filter', null));
 
-        $this->validLength = $config->getInteger('valid.length', 7*24*60*60);
+        $this->validLength = $config->getInteger('valid.length', 7 * 24 * 60 * 60);
 
         $globalConfig = Configuration::getInstance();
         $certDir = $globalConfig->getPathValue('certdir', 'cert/');
@@ -228,7 +226,7 @@ class Aggregator
             $signKey = System::resolvePath($signKey, $certDir);
             $sk = @file_get_contents($signKey);
             if ($sk === false) {
-                throw new \Exception('Unable to load private key from ' . var_export($signKey, true));
+                throw new Exception('Unable to load private key from ' . var_export($signKey, true));
             }
             $this->signKey = $sk;
         }
@@ -240,14 +238,14 @@ class Aggregator
             $signCert = System::resolvePath($signCert, $certDir);
             $sc = @file_get_contents($signCert);
             if ($sc === false) {
-                throw new \Exception('Unable to load certificate file from ' . var_export($signCert, true));
+                throw new Exception('Unable to load certificate file from ' . var_export($signCert, true));
             }
             $this->signCert = $sc;
         }
 
         $this->signAlg = $config->getString('sign.algorithm', XMLSecurityKey::RSA_SHA1);
         if (!in_array($this->signAlg, self::$SUPPORTED_SIGNATURE_ALGORITHMS)) {
-            throw new \Exception('Unsupported signature algorithm ' . var_export($this->signAlg, true));
+            throw new Exception('Unsupported signature algorithm ' . var_export($this->signAlg, true));
         }
 
         $this->sslCAFile = $config->getString('ssl.cafile', null);
@@ -255,7 +253,7 @@ class Aggregator
         $this->regInfo = $config->getArray('RegistrationInfo', []);
         $this->pubInfo = $config->getArray('PublicationInfo', []);
 
-        $this->initSources($config->getConfigItem('sources'));
+        $this->initSources($config->getArray('sources', []));
     }
 
 
@@ -267,10 +265,10 @@ class Aggregator
      * @param array $sources  The sources as an array of \SimpleSAML\Configuration objects.
      * @return void
      */
-    protected function initSources(array $sources)
+    protected function initSources(array $sources): void
     {
         foreach ($sources as $source) {
-            $this->sources[] = new EntitySource($this, $source);
+            $this->sources[] = new EntitySource($this, Configuration::loadFromArray($source));
         }
     }
 
@@ -281,12 +279,11 @@ class Aggregator
      * @param string $id  The id of the aggregator.
      * @return Aggregator
      */
-    public static function getAggregator($id)
+    public static function getAggregator(string $id): Aggregator
     {
-        assert('is_string($id)');
-
         $config = Configuration::getConfig('module_aggregator2.php');
-        return new Aggregator($id, $config->getConfigItem($id));
+        /** @psalm-suppress PossiblyNullArgument */
+        return new Aggregator($id, $config->getConfigItem($id, []));
     }
 
 
@@ -295,7 +292,7 @@ class Aggregator
      *
      * @return string  The ID of this aggregator.
      */
-    public function getId()
+    public function getId(): string
     {
         return $this->id;
     }
@@ -310,17 +307,12 @@ class Aggregator
      * @param string|null $tag  An extra tag that can be used to verify the validity of the cached data.
      * @return void
      */
-    public function addCacheItem($id, $data, $expires, $tag = null)
+    public function addCacheItem(string $id, string $data, int $expires, string $tag = null): void
     {
-        assert(is_string($id));
-        assert(is_string($data));
-        assert(is_int($expires));
-        assert(is_null($tag) || is_string($tag));
-
         $cacheFile = strval($this->cacheDirectory) . '/' . $id;
         try {
             System::writeFile($cacheFile, $data);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Logger::warning($this->logLoc . 'Unable to write to cache file ' . var_export($cacheFile, true));
             return;
         }
@@ -333,7 +325,7 @@ class Aggregator
         $expireFile = $cacheFile . '.expire';
         try {
             System::writeFile($expireFile, $expireInfo);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Logger::warning($this->logLoc . 'Unable to write expiration info to ' . var_export($expireFile, true));
         }
     }
@@ -343,14 +335,11 @@ class Aggregator
      * Check validity of cached data.
      *
      * @param string $id  The identifier of this data.
-     * @param string $tag  The tag that was passed to addCacheItem.
+     * @param string|null $tag  The tag that was passed to addCacheItem.
      * @return bool  TRUE if the data is valid, FALSE if not.
      */
-    public function isCacheValid($id, $tag = null)
+    public function isCacheValid(string $id, string $tag = null): bool
     {
-        assert(is_string($id));
-        assert(is_null($tag) || is_string($tag));
-
         $cacheFile = strval($this->cacheDirectory) . '/' . $id;
         if (!file_exists($cacheFile)) {
             return false;
@@ -390,14 +379,11 @@ class Aggregator
      * Get the cache item.
      *
      * @param string $id  The identifier of this data.
-     * @param string $tag  The tag that was passed to addCacheItem.
+     * @param string|null $tag  The tag that was passed to addCacheItem.
      * @return string|null  The cache item, or NULL if it isn't cached or if it is expired.
      */
-    public function getCacheItem($id, $tag = null)
+    public function getCacheItem(string $id, string $tag = null): ?string
     {
-        assert(is_string($id));
-        assert(is_null($tag) || is_string($tag));
-
         if (!$this->isCacheValid($id, $tag)) {
             return null;
         }
@@ -413,10 +399,8 @@ class Aggregator
      * @param string $id  The identifier of the cached data.
      * @return string|null  The filename, or NULL if the cache file doesn't exist.
      */
-    public function getCacheFile($id)
+    public function getCacheFile(string $id): ?string
     {
-        assert(is_string($id));
-
         $cacheFile = strval($this->cacheDirectory) . '/' . $id;
         if (!file_exists($cacheFile)) {
             return null;
@@ -431,7 +415,7 @@ class Aggregator
      *
      * @return string|null  The SSL CA file path.
      */
-    public function getCAFile()
+    public function getCAFile(): ?string
     {
         return $this->sslCAFile;
     }
@@ -441,7 +425,7 @@ class Aggregator
      * Sign the generated EntitiesDescriptor.
      * @return void
      */
-    protected function addSignature(SignedElement $element)
+    protected function addSignature(SignedElement $element): void
     {
         if ($this->signKey === null) {
             return;
@@ -470,7 +454,7 @@ class Aggregator
      *
      * @return array An array containing all the EntityDescriptors found.
      */
-    private static function extractEntityDescriptors(EntitiesDescriptor $entity)
+    private static function extractEntityDescriptors(EntitiesDescriptor $entity): array
     {
         $results = [];
         foreach ($entity->getChildren() as $child) {
@@ -490,10 +474,11 @@ class Aggregator
      *
      * @return \SAML2\XML\md\EntitiesDescriptor  The entities.
      */
-    protected function getEntitiesDescriptor()
+    protected function getEntitiesDescriptor(): EntitiesDescriptor
     {
         $ret = new EntitiesDescriptor();
         $now = time();
+        $extensions = [];
 
         // add RegistrationInfo extension if enabled
         if (!empty($this->regInfo)) {
@@ -518,7 +503,7 @@ class Aggregator
                         break;
                 }
             }
-            $ret->addExtension($ri);
+            $extensions[] = $ri;
         }
 
         // add PublicationInfo extension if enabled
@@ -547,8 +532,9 @@ class Aggregator
                         break;
                 }
             }
-            $ret->addExtension($pi);
+            $extensions[] = $pi;
         }
+        $ret->setExtensions($extensions);
 
         foreach ($this->sources as $source) {
             $m = $source->getMetadata();
@@ -577,7 +563,7 @@ class Aggregator
      *
      * @return \SAML2\XML\md\EntitiesDescriptor The EntitiesDescriptor with excluded entities filtered out.
      */
-    protected function exclude(EntitiesDescriptor $descriptor)
+    protected function exclude(EntitiesDescriptor $descriptor): EntitiesDescriptor
     {
         if (empty($this->excluded)) {
             return $descriptor;
@@ -586,7 +572,7 @@ class Aggregator
         $filtered = [];
         foreach ($descriptor->getChildren() as $child) {
             if ($child instanceof EntityDescriptor) {
-                if (in_array($child->entityID, $this->excluded)) {
+                if (in_array($child->getEntityID(), $this->excluded)) {
                     continue;
                 }
                 $filtered[] = $child;
@@ -611,7 +597,7 @@ class Aggregator
      *
      * @return \SAML2\XML\md\EntitiesDescriptor The EntitiesDescriptor with only the entities filtered.
      */
-    protected function filter(EntitiesDescriptor $descriptor)
+    protected function filter(EntitiesDescriptor $descriptor): EntitiesDescriptor
     {
         if ($this->roles === null || $this->protocols === null) {
             return $descriptor;
@@ -623,10 +609,10 @@ class Aggregator
         $filtered = [];
         foreach ($descriptor->getChildren() as $child) {
             if ($child instanceof EntityDescriptor) {
-                foreach ($child->RoleDescriptor as $role) {
+                foreach ($child->getRoleDescriptor() as $role) {
                     if (in_array(get_class($role), $enabled_roles)) {
                         // we found a role descriptor that is enabled by our filters, check protocols
-                        if (array_intersect($enabled_protos, $role->protocolSupportEnumeration) !== []) {
+                        if (array_intersect($enabled_protos, $role->getProtocolSupportEnumeration()) !== []) {
                             // it supports some protocol we have enabled, add it
                             $filtered[] = $child;
                             break;
@@ -651,16 +637,14 @@ class Aggregator
      * @param array|null $entities The entity IDs of the entities to exclude.
      * @return void
      */
-    public function excludeEntities($entities)
+    public function excludeEntities(?array $entities): void
     {
-        assert(is_array($entities) || is_null($entities));
-
         if ($entities === null) {
             return;
         }
         $this->excluded = $entities;
         sort($this->excluded);
-        $this->cacheId = sha1($this->cacheId.serialize($this->excluded));
+        $this->cacheId = sha1($this->cacheId . serialize($this->excluded));
     }
 
 
@@ -668,21 +652,15 @@ class Aggregator
      * Set the internal filters according to one or more options:
      *
      * - 'saml2': all SAML2.0-capable entities.
-     * - 'shib13': all SHIB1.3-capable entities.
      * - 'saml20-idp': all SAML2.0-capable identity providers.
      * - 'saml20-sp': all SAML2.0-capable service providers.
      * - 'saml20-aa': all SAML2.0-capable attribute authorities.
-     * - 'shib13-idp': all SHIB1.3-capable identity providers.
-     * - 'shib13-sp': all SHIB1.3-capable service providers.
-     * - 'shib13-aa': all SHIB1.3-capable attribute authorities.
      *
      * @param array|null $set An array of the different roles and protocols to filter by.
      * @return void
      */
-    public function setFilters($set)
+    public function setFilters(?array $set): void
     {
-        assert(is_array($set) || is_null($set));
-
         if ($set === null) {
             return;
         }
@@ -690,7 +668,6 @@ class Aggregator
         // configure filters
         $this->protocols = [
             Constants::NS_SAMLP                    => true,
-            'urn:oasis:names:tc:SAML:1.1:protocol' => true,
         ];
         $this->roles = [
             'SAML2_XML_md_IDPSSODescriptor'             => true,
@@ -704,23 +681,19 @@ class Aggregator
         $options = ['saml2', 'saml20-idp', 'saml20-sp', 'saml20-aa'];
         $this->protocols[Constants::NS_SAMLP] = (array_intersect($set, $options) !== []);
 
-        // check SHIB 1.3 protocol
-        $options = ['shib13', 'shib13-idp', 'shib13-sp', 'shib13-aa'];
-        $this->protocols['urn:oasis:names:tc:SAML:1.1:protocol'] = (array_intersect($set, $options) !== []);
-
         // check IdP
-        $options = ['saml2', 'shib13', 'saml20-idp', 'shib13-idp'];
+        $options = ['saml2', 'saml20-idp'];
         $this->roles['SAML2_XML_md_IDPSSODescriptor'] = (array_intersect($set, $options) !== []);
 
         // check SP
-        $options = ['saml2', 'shib13', 'saml20-sp', 'shib13-sp'];
+        $options = ['saml2', 'saml20-sp'];
         $this->roles['SAML2_XML_md_SPSSODescriptor'] = (array_intersect($set, $options) !== []);
 
         // check AA
-        $options = ['saml2', 'shib13', 'saml20-aa', 'shib13-aa'];
+        $options = ['saml2', 'saml20-aa'];
         $this->roles['SAML2_XML_md_AttributeAuthorityDescriptor'] = (array_intersect($set, $options) !== []);
 
-        $this->cacheId = sha1($this->cacheId.serialize($this->protocols).serialize($this->roles));
+        $this->cacheId = sha1($this->cacheId . serialize($this->protocols) . serialize($this->roles));
     }
 
 
@@ -732,7 +705,7 @@ class Aggregator
      *
      * @return string  The metadata, as text.
      */
-    public function updateCachedMetadata()
+    public function updateCachedMetadata(): string
     {
         $ed = $this->getEntitiesDescriptor();
         $ed = $this->exclude($ed);
@@ -756,7 +729,7 @@ class Aggregator
      *
      * @return string  The metadata, as text.
      */
-    public function getMetadata()
+    public function getMetadata(): string
     {
         if ($this->cacheGenerated !== null) {
             $xml = $this->getCacheItem($this->cacheId, $this->cacheTag);
@@ -774,7 +747,7 @@ class Aggregator
      * Update the cached copy of our metadata.
      * @return void
      */
-    public function updateCache()
+    public function updateCache(): void
     {
         foreach ($this->sources as $source) {
             $source->updateCache();
