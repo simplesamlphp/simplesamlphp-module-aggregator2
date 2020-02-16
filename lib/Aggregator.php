@@ -243,7 +243,7 @@ class Aggregator
             $this->signCert = $sc;
         }
 
-        $this->signAlg = $config->getString('sign.algorithm', XMLSecurityKey::RSA_SHA1);
+        $this->signAlg = $config->getString('sign.algorithm', XMLSecurityKey::RSA_SHA256);
         if (!in_array($this->signAlg, self::$SUPPORTED_SIGNATURE_ALGORITHMS)) {
             throw new Exception('Unsupported signature algorithm ' . var_export($this->signAlg, true));
         }
