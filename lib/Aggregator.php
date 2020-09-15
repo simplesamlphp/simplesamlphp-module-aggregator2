@@ -263,7 +263,6 @@ class Aggregator
      * This is called from the constructor, and can be overridden in subclasses.
      *
      * @param array $sources  The sources as an array of \SimpleSAML\Configuration objects.
-     * @return void
      */
     protected function initSources(array $sources): void
     {
@@ -305,7 +304,6 @@ class Aggregator
      * @param string $data  The data.
      * @param int $expires  The timestamp the data expires.
      * @param string|null $tag  An extra tag that can be used to verify the validity of the cached data.
-     * @return void
      */
     public function addCacheItem(string $id, string $data, int $expires, string $tag = null): void
     {
@@ -423,7 +421,6 @@ class Aggregator
 
     /**
      * Sign the generated EntitiesDescriptor.
-     * @return void
      */
     protected function addSignature(SignedElement $element): void
     {
@@ -635,7 +632,6 @@ class Aggregator
      * Set this aggregator to exclude a set of entities from the resulting aggregate.
      *
      * @param array|null $entities The entity IDs of the entities to exclude.
-     * @return void
      */
     public function excludeEntities(?array $entities): void
     {
@@ -657,7 +653,6 @@ class Aggregator
      * - 'saml20-aa': all SAML2.0-capable attribute authorities.
      *
      * @param array|null $set An array of the different roles and protocols to filter by.
-     * @return void
      */
     public function setFilters(?array $set): void
     {
@@ -745,7 +740,6 @@ class Aggregator
 
     /**
      * Update the cached copy of our metadata.
-     * @return void
      */
     public function updateCache(): void
     {

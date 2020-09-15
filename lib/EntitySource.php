@@ -204,7 +204,6 @@ class EntitySource
 
     /**
      * Attempt to update our cache file.
-     * @return void
      */
     public function updateCache(): void
     {

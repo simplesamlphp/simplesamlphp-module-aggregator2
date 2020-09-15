@@ -8,7 +8,6 @@ use SimpleSAML\Module\aggregator2\Aggregator;
  * cron hook to update aggregator2 metadata.
  *
  * @param array &$croninfo  Output
- * @return void
  */
 function aggregator2_hook_cron(array &$croninfo): void
 {
