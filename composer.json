@@ -15,13 +15,18 @@
             "email": "jaime.perez@uninett.no"
         }
     ],
+    "autoload": {
+        "psr-4": {
+            "SimpleSAML\\Module\\aggregator2\\": "lib/"
+        }
+    },
     "require": {
-        "php": ">=7.2",
+        "php": ">=7.4",
         "simplesamlphp/composer-module-installer": "~1.1",
         "simplesamlphp/simplesamlphp": "dev-master"
     },
     "require-dev": {
-        "simplesamlphp/simplesamlphp-test-framework": "~0.1.0"
+        "simplesamlphp/simplesamlphp-test-framework": "~1.0.0"
     }
 }
 
