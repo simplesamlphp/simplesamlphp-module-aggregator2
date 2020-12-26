@@ -1,6 +1,3 @@
-msgid "{aggregator2:aggregator:frontpage_link}"
-msgstr "Metadata agreg\u00e1tor"
-
 msgid "Aggregators"
 msgstr "Aggregators"
 

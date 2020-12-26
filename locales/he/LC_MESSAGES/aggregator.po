@@ -1,6 +1,3 @@
-msgid "{aggregator2:aggregator:frontpage_link}"
-msgstr "\u05e9\u05d5\u05dc\u05e3 \u05de\u05d8\u05d0-\u05de\u05d9\u05d3\u05e2"
-
 msgid "Aggregators"
 msgstr "Aggregators"
 
