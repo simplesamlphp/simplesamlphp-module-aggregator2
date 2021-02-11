@@ -21,7 +21,7 @@
     "require-dev": {
         "simplesamlphp/simplesamlphp": "^1.17",
         "simplesamlphp/simplesamlphp-test-framework": "^0.2.7.2",
-        "phpunit/phpunit": "^5.7"
+        "phpunit/phpunit": "^8.5"
     }
 }
 
