@@ -6,14 +6,14 @@ use Exception;
 use RobRichards\XMLSecLibs\XMLSecurityKey;
 use SAML2\Constants;
 use SAML2\SignedElement;
-use SAML2\Utils;
+use SAML2\Utils as SAML2_Utils;
 use SAML2\XML\md\EntitiesDescriptor;
 use SAML2\XML\md\EntityDescriptor;
 use SAML2\XML\mdrpi\RegistrationInfo;
 use SAML2\XML\mdrpi\PublicationInfo;
 use SimpleSAML\Configuration;
 use SimpleSAML\Logger;
-use SimpleSAML\Utils\System;
+use SimpleSAML\Utils;
 
 /**
  * Class which implements a basic metadata aggregator.
@@ -194,6 +194,7 @@ class Aggregator
      */
     protected function __construct(string $id, Configuration $config)
     {
+        $sysUtils = new Utils\System();
         $this->id = $id;
         $this->logLoc = 'aggregator2:' . $this->id . ': ';
 
@@ -201,7 +202,7 @@ class Aggregator
 
         $this->cacheDirectory = $config->getString('cache.directory', null);
         if ($this->cacheDirectory !== null) {
-            $this->cacheDirectory = System::resolvePath($this->cacheDirectory);
+            $this->cacheDirectory = $sysUtils->resolvePath($this->cacheDirectory);
         }
 
         $this->cacheGenerated = $config->getInteger('cache.generated', null);
@@ -223,7 +224,7 @@ class Aggregator
 
         $signKey = $config->getString('sign.privatekey', null);
         if ($signKey !== null) {
-            $signKey = System::resolvePath($signKey, $certDir);
+            $signKey = $sysUtils->resolvePath($signKey, $certDir);
             $sk = @file_get_contents($signKey);
             if ($sk === false) {
                 throw new Exception('Unable to load private key from ' . var_export($signKey, true));
@@ -235,7 +236,7 @@ class Aggregator
 
         $signCert = $config->getString('sign.certificate', null);
         if ($signCert !== null) {
-            $signCert = System::resolvePath($signCert, $certDir);
+            $signCert = $sysUtils->resolvePath($signCert, $certDir);
             $sc = @file_get_contents($signCert);
             if ($sc === false) {
                 throw new Exception('Unable to load certificate file from ' . var_export($signCert, true));
@@ -307,9 +308,10 @@ class Aggregator
      */
     public function addCacheItem(string $id, string $data, int $expires, string $tag = null): void
     {
+        $sysUtils = new Utils\System();
         $cacheFile = strval($this->cacheDirectory) . '/' . $id;
         try {
-            System::writeFile($cacheFile, $data);
+            $sysUtils->writeFile($cacheFile, $data);
         } catch (Exception $e) {
             Logger::warning($this->logLoc . 'Unable to write to cache file ' . var_export($cacheFile, true));
             return;
@@ -322,7 +324,7 @@ class Aggregator
 
         $expireFile = $cacheFile . '.expire';
         try {
-            System::writeFile($expireFile, $expireInfo);
+            $sysUtils->writeFile($expireFile, $expireInfo);
         } catch (Exception $e) {
             Logger::warning($this->logLoc . 'Unable to write expiration info to ' . var_export($expireFile, true));
         }
@@ -487,7 +489,7 @@ class Aggregator
                         $ri->setRegistrationAuthority($riValues);
                         break;
                     case 'instant':
-                        $ri->setRegistrationInstant(Utils::xsDateTimeToTimestamp($riValues));
+                        $ri->setRegistrationInstant(SAML2_Utils::xsDateTimeToTimestamp($riValues));
                         break;
                     case 'policies':
                         $ri->setRegistrationPolicy($riValues);
@@ -516,7 +518,7 @@ class Aggregator
                         $pi->setPublicationId($piValues);
                         break;
                     case 'instant':
-                        $pi->setCreationInstant(Utils::xsDateTimeToTimestamp($piValues));
+                        $pi->setCreationInstant(SAML2_Utils::xsDateTimeToTimestamp($piValues));
                         break;
                     case 'policies':
                         $pi->setUsagePolicy($piValues);

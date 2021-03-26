@@ -13,7 +13,8 @@ error_reporting(E_ALL ^ E_NOTICE);
 try {
     $aggregator = \SimpleSAML\Module\aggregator2\Aggregator::getAggregator($id);
     $xml = $aggregator->getMetadata();
-    $xml = \SimpleSAML\Utils\XML::formatXMLString($xml);
+    $xmlUtils = new \SimpleSAML\Utils\XML();
+    $xml = $xmlUtils->formatXMLString($xml);
     echo $xml;
 } catch (\Exception $e) {
     fwrite(STDERR, $e->getMessage() . "\n");

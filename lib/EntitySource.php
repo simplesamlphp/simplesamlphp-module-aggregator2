@@ -116,10 +116,11 @@ class EntitySource
     private function downloadMetadata()
     {
         Logger::debug($this->logLoc . 'Downloading metadata from ' . var_export($this->url, true));
+        $configUtils = new Utils\Config();
 
         $context = ['ssl' => []];
         if ($this->sslCAFile !== null) {
-            $context['ssl']['cafile'] = Utils\Config::getCertPath($this->sslCAFile);
+            $context['ssl']['cafile'] = $configUtils->getCertPath($this->sslCAFile);
             Logger::debug(
                 $this->logLoc . 'Validating https connection against CA certificate(s) found in ' .
                 var_export($context['ssl']['cafile'], true)
@@ -129,7 +130,8 @@ class EntitySource
         }
 
         try {
-            $data = Utils\HTTP::fetch($this->url, $context, false);
+            $httpUtils = new Utils\HTTP();
+            $data = $httpUtils->fetch($this->url, $context, false);
         } catch (Error\Exception $e) {
             Logger::error($this->logLoc . 'Unable to load metadata from ' . var_export($this->url, true));
             return null;
@@ -181,7 +183,7 @@ class EntitySource
         }
 
         if ($this->certificate !== null) {
-            $file = Utils\Config::getCertPath($this->certificate);
+            $file = $configUtils->getCertPath($this->certificate);
             $certData = file_get_contents($file);
             if ($certData === false) {
                 throw new Exception('Error loading certificate from ' . var_export($file, true));

@@ -36,7 +36,8 @@ if (isset($_GET['mimetype']) && in_array($_GET['mimetype'], $allowedmimetypes)) 
 }
 
 if ($mimetype === 'text/plain') {
-    $xml = Utils\XML::formatXMLString($xml);
+    $xmlUtils = new Utils\XML();
+    $xml = $xmlUtils->formatXMLString($xml);
 }
 
 header('Content-Type: ' . $mimetype);
