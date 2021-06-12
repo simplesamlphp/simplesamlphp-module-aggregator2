@@ -25,35 +25,35 @@ class EntitySource
      *
      * @var string
      */
-    protected $logLoc;
+    protected string $logLoc;
 
     /**
      * The aggregator we belong to.
      *
      * @var \SimpleSAML\Module\aggregator2\Aggregator
      */
-    protected $aggregator;
+    protected Aggregator $aggregator;
 
     /**
      * The URL we should fetch it from.
      *
      * @var string
      */
-    protected $url;
+    protected string $url;
 
     /**
      * The SSL CA file that should be used to validate the connection.
      *
      * @var string|null
      */
-    protected $sslCAFile;
+    protected ?string $sslCAFile;
 
     /**
      * The certificate we should use to validate downloaded metadata.
      *
      * @var string|null
      */
-    protected $certificate;
+    protected ?string $certificate;
 
     /**
      * The parsed metadata.
@@ -67,21 +67,21 @@ class EntitySource
      *
      * @var string
      */
-    protected $cacheId;
+    protected string $cacheId;
 
     /**
      * The cache tag.
      *
      * @var string
      */
-    protected $cacheTag;
+    protected string $cacheTag;
 
     /**
      * Whether we have attempted to update the cache already.
      *
      * @var bool
      */
-    protected $updateAttempted = false;
+    protected bool $updateAttempted = false;
 
 
     /**

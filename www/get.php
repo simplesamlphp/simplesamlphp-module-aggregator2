@@ -9,12 +9,12 @@ if (!isset($_REQUEST['id'])) {
 }
 $id = strval($_REQUEST['id']);
 
-$set = null;
+$set = [];
 if (isset($_REQUEST['set'])) {
     $set = explode(',', $_REQUEST['set']);
 }
 
-$excluded_entities = null;
+$excluded_entities = [];
 if (isset($_REQUEST['exclude'])) {
     $excluded_entities = explode(',', $_REQUEST['exclude']);
 }

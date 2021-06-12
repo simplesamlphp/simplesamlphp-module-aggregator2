@@ -27,7 +27,7 @@ class Aggregator
      *
      * @var array
      */
-    public static $SUPPORTED_SIGNATURE_ALGORITHMS = [
+    public static array $SUPPORTED_SIGNATURE_ALGORITHMS = [
         XMLSecurityKey::RSA_SHA1,
         XMLSecurityKey::RSA_SHA256,
         XMLSecurityKey::RSA_SHA384,
@@ -39,28 +39,28 @@ class Aggregator
      *
      * @var string
      */
-    protected $id;
+    protected string $id;
 
     /**
      * Our log "location".
      *
      * @var string
      */
-    protected $logLoc;
+    protected string $logLoc;
 
     /**
      * Which cron-tag this should be updated in.
      *
      * @var string|null
      */
-    protected $cronTag;
+    protected ?string $cronTag;
 
     /**
      * Absolute path to a cache directory.
      *
      * @var string|null
      */
-    protected $cacheDirectory;
+    protected ?string $cacheDirectory;
 
     /**
      * The entity sources.
@@ -69,7 +69,7 @@ class Aggregator
      *
      * @var array
      */
-    protected $sources = [];
+    protected array $sources = [];
 
     /**
      * How long the generated metadata should be valid, as a number of seconds.
@@ -78,21 +78,21 @@ class Aggregator
      *
      * @var int
      */
-    protected $validLength;
+    protected int $validLength;
 
     /**
      * Duration we should cache generated metadata.
      *
      * @var int|null
      */
-    protected $cacheGenerated;
+    protected ?int $cacheGenerated;
 
     /**
      * An array of entity IDs to exclude from the aggregate.
      *
-     * @var string[]|null
+     * @var string[]
      */
-    protected $excluded;
+    protected array $excluded = [];
 
     /**
      * An indexed array of protocols to filter the aggregate by. keys can be any of:
@@ -102,9 +102,9 @@ class Aggregator
      *
      * Values will be true if enabled, false otherwise.
      *
-     * @var array|null
+     * @var array
      */
-    protected $protocols;
+    protected $protocols = [];
 
     /**
      * An array of roles to filter the aggregate by. Keys can be any of:
@@ -115,51 +115,51 @@ class Aggregator
      *
      * Values will be true if enabled, false otherwise.
      *
-     * @var array|null
+     * @var array
      */
-    protected $roles;
+    protected array $roles;
 
     /**
      * The key we should use to sign the metadata.
      *
      * @var string|null
      */
-    protected $signKey;
+    protected ?string $signKey;
 
     /**
      * The password for the private key.
      *
      * @var string|null
      */
-    protected $signKeyPass;
+    protected ?string $signKeyPass;
 
     /**
      * The certificate of the key we sign the metadata with.
      *
      * @var string|null
      */
-    protected $signCert;
+    protected ?string $signCert;
 
     /**
      * The algorithm to use for metadata signing.
      *
      * @var string|null
      */
-    protected $signAlg;
+    protected ?string $signAlg;
 
     /**
      * The CA certificate file that should be used to validate https-connections.
      *
      * @var string|null
      */
-    protected $sslCAFile;
+    protected ?string $sslCAFile;
 
     /**
      * The cache ID for our generated metadata.
      *
      * @var string
      */
-    protected $cacheId = 'dummy';
+    protected string $cacheId = 'dummy';
 
     /**
      * The cache tag for our generated metadata.
@@ -169,21 +169,21 @@ class Aggregator
      *
      * @var string
      */
-    protected $cacheTag = 'dummy';
+    protected string $cacheTag = 'dummy';
 
     /**
      * The registration information for our generated metadata.
      *
      * @var array
      */
-    protected $regInfo;
+    protected array $regInfo;
 
     /**
      * The publication information for our generated metadata.
      *
      * @var array
      */
-    protected $pubInfo;
+    protected array $pubInfo;
 
 
     /**
@@ -212,10 +212,10 @@ class Aggregator
         }
 
         // configure entity IDs excluded by default
-        $this->excludeEntities($config->getArrayize('exclude', null));
+        $this->excludeEntities($config->getArrayize('exclude', []));
 
         // configure filters
-        $this->setFilters($config->getArrayize('filter', null));
+        $this->setFilters($config->getArrayize('filter', []));
 
         $this->validLength = $config->getInteger('valid.length', 7 * 24 * 60 * 60);
 
@@ -598,7 +598,7 @@ class Aggregator
      */
     protected function filter(EntitiesDescriptor $descriptor): EntitiesDescriptor
     {
-        if ($this->roles === null || $this->protocols === null) {
+        if (empty($this->roles) || empty($this->protocols)) {
             return $descriptor;
         }
 
@@ -633,11 +633,11 @@ class Aggregator
     /**
      * Set this aggregator to exclude a set of entities from the resulting aggregate.
      *
-     * @param array|null $entities The entity IDs of the entities to exclude.
+     * @param array $entities The entity IDs of the entities to exclude.
      */
-    public function excludeEntities(?array $entities): void
+    public function excludeEntities(array $entities): void
     {
-        if ($entities === null) {
+        if (empty($entities)) {
             return;
         }
         $this->excluded = $entities;
@@ -654,11 +654,11 @@ class Aggregator
      * - 'saml20-sp': all SAML2.0-capable service providers.
      * - 'saml20-aa': all SAML2.0-capable attribute authorities.
      *
-     * @param array|null $set An array of the different roles and protocols to filter by.
+     * @param array $set An array of the different roles and protocols to filter by.
      */
-    public function setFilters(?array $set): void
+    public function setFilters(array $set): void
     {
-        if ($set === null) {
+        if (empty($set)) {
             return;
         }
 
