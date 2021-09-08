@@ -1,0 +1,6 @@
+aggregator-main:
+    path:       /
+    defaults:   { _controller: 'SimpleSAML\Module\aggregator2\Controller\Aggregator::main' }
+aggregator-get:
+    path:       /get
+    defaults:   { _controller: 'SimpleSAML\Module\aggregator2\Controller\Aggregator::get' }
