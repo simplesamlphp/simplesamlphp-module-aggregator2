@@ -110,7 +110,7 @@ class Aggregator
         $sets = [];
         $set = $request->get('set');
         if ($set !== null) {
-            $set = explode(',', $set);
+            $sets = explode(',', $set);
         }
 
         $excluded_entities = [];
