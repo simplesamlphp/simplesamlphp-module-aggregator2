@@ -33,7 +33,7 @@ class Aggregator
     protected Session $session;
 
     /** @var string[] */
-    private static array  $allowedMimeTypes = [
+    private static array $allowedMimeTypes = [
         'text/plain',
         'application/samlmetadata-xml',
         'application/xml',
@@ -114,8 +114,8 @@ class Aggregator
         }
 
         $excluded_entities = [];
-        $exlude = $request->get('exclude');
-        if ($exlude !== null) {
+        $exclude = $request->get('exclude');
+        if ($exclude !== null) {
             $excluded_entities = explode(',', $exclude);
         }
 
@@ -138,9 +138,9 @@ class Aggregator
 
         $response = new Response();
         $response->headers->set('Content-Type', $mime);
-        $response->headers->set('Content-Length', strlen($xml));
+        $response->headers->set('Content-Length', strval(strlen($xml)));
         $response->headers->set('Content-Disposition', 'filename=' . $id . '.xml');
-        $response->setContent(xml);
+        $response->setContent($xml);
 
         return $response;
     }
