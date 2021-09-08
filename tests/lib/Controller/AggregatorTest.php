@@ -119,6 +119,50 @@ class AutotestTest extends TestCase
         $response = $c->get($request);
 
         $this->assertTrue($response->isSuccessful());
+        $this->assertEquals('application/samlmetadata+xml', $response->headers->get('Content-Type'));
+        $this->assertEquals('filename=abc123.xml', $response->headers->get('Content-Disposition'));
+        $this->assertInstanceOf(Response::class, $response);
+    }
+
+
+    /**
+     * Test that accessing the get-page with allowed MimeType results in the MimeType actually set.
+     */
+    public function testGetWithAllowedMime(): void
+    {
+        $request = Request::create(
+            '/',
+            'GET',
+            ['id' => 'abc123', 'set' => 'example,test,bogus', 'exclude' => 'test,example', 'mimetype' => 'text/plain']
+        );
+
+        $c = new Controller\Aggregator($this->config, $this->session);
+        $response = $c->get($request);
+
+        $this->assertTrue($response->isSuccessful());
+        $this->assertEquals('text/plain', $response->headers->get('Content-Type'));
+        $this->assertEquals('filename=abc123.xml', $response->headers->get('Content-Disposition'));
+        $this->assertInstanceOf(Response::class, $response);
+    }
+
+
+    /**
+     * Test that accessing the get-page with non-allowed MimeType results in the default being set.
+     */
+    public function testGetWithNonAllowedMime(): void
+    {
+        $request = Request::create(
+            '/',
+            'GET',
+            ['id' => 'abc123', 'set' => 'example,test,bogus', 'exclude' => 'test,example', 'mimetype' => 'something/stupid']
+        );
+
+        $c = new Controller\Aggregator($this->config, $this->session);
+        $response = $c->get($request);
+
+        $this->assertTrue($response->isSuccessful());
+        $this->assertEquals('application/samlmetadata+xml', $response->headers->get('Content-Type'));
+        $this->assertEquals('filename=abc123.xml', $response->headers->get('Content-Disposition'));
         $this->assertInstanceOf(Response::class, $response);
     }
 }
