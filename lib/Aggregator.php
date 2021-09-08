@@ -124,7 +124,7 @@ class Aggregator
      *
      * @var string|null
      */
-    protected ?string $signKey;
+    protected ?string $signKey = null;
 
     /**
      * The password for the private key.

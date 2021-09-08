@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace SimpleSAML\Module\autotest\Controller;
+namespace SimpleSAML\Module\aggregator2\Controller;
 
 use SimpleSAML\Configuration;
 use SimpleSAML\Error;
@@ -125,7 +125,7 @@ class Aggregator
         $xml = $aggregator->getMetadata();
 
         $mimeType = $request->get('mimetype');
-        if (in_array($mimeType, $this->allowedMimeTypes)) {
+        if (in_array($mimeType, self::$allowedMimeTypes)) {
             $mime = $mimeType;
 
             if ($mime === 'text/plain') {
