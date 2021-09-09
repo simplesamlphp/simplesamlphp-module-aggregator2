@@ -20,7 +20,7 @@ use Symfony\Component\HttpFoundation\Response;
  *
  * @covers \SimpleSAML\Module\aggregator2\Controller\Aggregator
  */
-class AutotestTest extends TestCase
+class AggregatorTest extends TestCase
 {
     /** @var \SimpleSAML\Configuration */
     protected Configuration $config;
