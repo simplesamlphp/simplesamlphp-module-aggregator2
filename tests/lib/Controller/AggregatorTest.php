@@ -13,8 +13,6 @@ use SimpleSAML\XHTML\Template;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-//use function call_user_func;
-
 /**
  * Set of tests for the controllers in the "aggregator2" module.
  *
