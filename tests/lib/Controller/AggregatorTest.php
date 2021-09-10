@@ -67,8 +67,7 @@ class AggregatorTest extends TestCase
                 'simplesaml'
             ),
             'module_aggregator2.php'
-          );
-
+        );
     }
 
 
