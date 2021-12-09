@@ -5,7 +5,6 @@ $finder = PhpCsFixer\Finder::create()
         __DIR__ . '/lib',
         __DIR__ . '/hooks',
         __DIR__ . '/tests',
-        __DIR__ . '/www',
     ])
 ;
 return PhpCsFixer\Config::create()
