@@ -15,6 +15,12 @@
             "email": "jaime.perez@uninett.no"
         }
     ],
+    "config": {
+        "allow-plugins": {
+            "composer/package-versions-deprecated": true,
+            "simplesamlphp/composer-module-installer": true
+        }
+    },
     "require": {
         "simplesamlphp/composer-module-installer": "~1.1"
     },
