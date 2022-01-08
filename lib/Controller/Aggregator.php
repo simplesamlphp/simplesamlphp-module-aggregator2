@@ -73,15 +73,15 @@ class Aggregator
 
             $sources[$name] = [
                 'name' => Module::getModuleURL(
-                    'aggregator2/get.php',
+                    'aggregator2/get',
                     ['id' => $encId]
                 ),
                 'text' => Module::getModuleURL(
-                    'aggregator2/get.php',
+                    'aggregator2/get',
                     ['id' => $encId, 'mimetype' => 'text/plain']
                 ),
                 'xml' => Module::getModuleURL(
-                    'aggregator2/get.php',
+                    'aggregator2/get',
                     ['id' => $encId, 'mimetype' => 'application/xml']
                 ),
             ];

@@ -139,7 +139,7 @@ formats.
 
 In general, metadata aggregates can be downloaded from the following location:
 
-    http://<YOUR HOST>/simplesaml/modules.php/aggregator2/get.php?id=<aggregator id>
+    http://<YOUR HOST>/simplesaml/modules.php/aggregator2/get?id=<aggregator id>
 
 where the *aggregator id* is the identifier you used as an index for the aggregator configuration array. Additionally,
 you can use the following parameters to customize the resulting metadata aggregate:
