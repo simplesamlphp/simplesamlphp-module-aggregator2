@@ -101,20 +101,20 @@ class Aggregator
      */
     public function get(Request $request): Response
     {
-        $id = $request->get('id');
+        $id = $request->query->get('id');
         if ($id === null) {
             throw new Error\BadRequest('Missing required parameter "id".');
         }
         $id = strval($id);
 
         $sets = [];
-        $set = $request->get('set');
+        $set = $request->query->get('set');
         if ($set !== null) {
             $sets = explode(',', $set);
         }
 
         $excluded_entities = [];
-        $exclude = $request->get('exclude');
+        $exclude = $request->query->get('exclude');
         if ($exclude !== null) {
             $excluded_entities = explode(',', $exclude);
         }
@@ -124,7 +124,7 @@ class Aggregator
         $aggregator->excludeEntities($excluded_entities);
         $xml = $aggregator->getMetadata();
 
-        $mimeType = $request->get('mimetype');
+        $mimeType = $request->query->get('mimetype');
         if (in_array($mimeType, self::$allowedMimeTypes)) {
             $mime = $mimeType;
 
