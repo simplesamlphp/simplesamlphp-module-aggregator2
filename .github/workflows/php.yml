@@ -22,6 +22,7 @@ jobs:
         with:
           php-version: ${{ matrix.php-versions }}
           tools: composer:v2
+          ini-values: error_reporting=E_ALL
           extensions: ldap, mbstring, xml
           coverage: pcov
 
