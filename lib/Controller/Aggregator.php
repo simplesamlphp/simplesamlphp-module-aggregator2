@@ -64,31 +64,8 @@ class Aggregator
      */
     public function main(): Template
     {
-        // get list of sources
-        $names = array_keys($this->moduleConfig->toArray());
-
-        $sources = [];
-        foreach ($names as $name) {
-            $encId = urlencode($name);
-
-            $sources[$name] = [
-                'name' => Module::getModuleURL(
-                    'aggregator2/get',
-                    ['id' => $encId]
-                ),
-                'text' => Module::getModuleURL(
-                    'aggregator2/get',
-                    ['id' => $encId, 'mimetype' => 'text/plain']
-                ),
-                'xml' => Module::getModuleURL(
-                    'aggregator2/get',
-                    ['id' => $encId, 'mimetype' => 'application/xml']
-                ),
-            ];
-        }
-
         $t = new Template($this->config, 'aggregator2:list.twig');
-        $t->data['sources'] = $sources;
+        $t->data['names'] = array_keys($this->moduleConfig->toArray());
 
         return $t;
     }
