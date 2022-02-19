@@ -23,7 +23,7 @@ jobs:
           php-version: ${{ matrix.php-versions }}
           tools: composer:v2
           ini-values: error_reporting=E_ALL
-          extensions: ldap, mbstring, xml
+          extensions: intl, mbstring, xml
           coverage: xdebug
 
       - name: Setup problem matchers for PHP
