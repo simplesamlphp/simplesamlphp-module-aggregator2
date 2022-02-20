@@ -10,9 +10,9 @@
 
     {% for name in names %}
         <li>
-            <a href="{{ moduleURL('aggregator2/get', {'id': name|url_encode }) }} ">{{ name }}</a>
-            <a href="{{ moduleURL('aggregator2/get', {'id': name|url_encode, 'mimetype': 'text/plain'}) }} ">{{ 'Text'|trans }}</a>
-            <a href="{{ moduleURL('aggregator2/get', {'id': name|url_encode, 'mimetype0: 'application/xml''}) }} ">[XML]</a>
+            <a href="{{ moduleURL('aggregator2/get', {'id': name }) }} ">{{ name }}</a>
+            <a href="{{ moduleURL('aggregator2/get', {'id': name, 'mimetype': 'text/plain'}) }} ">{{ 'Text'|trans }}</a>
+            <a href="{{ moduleURL('aggregator2/get', {'id': name, 'mimetype': 'application/xml'}) }} ">[XML]</a>
         </li>
     {% endfor%}
 
