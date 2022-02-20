@@ -3,16 +3,16 @@
 {% block content %}
 <h1>{{ 'Aggregators'|trans }}</h1>
 
-{% if sources is empty %}
+{% if names is empty %}
     <p>{{ 'No aggregators'|trans }}</p>
 {% else %}
     <ul>
 
-    {% for id, links in sources %}
+    {% for name in names %}
         <li>
-            <a href="{{ links.name }} ">{{ id|escape }}</a>
-            <a href="{{ links.text }} ">{{ 'Text'|trans }}</a>
-            <a href="{{ links.xml }} ">[XML]</a>
+            <a href="{{ moduleURL('aggregator2/get', {'id': name }) }} ">{{ name }}</a>
+            <a href="{{ moduleURL('aggregator2/get', {'id': name, 'mimetype': 'text/plain'}) }} ">{{ 'Text'|trans }}</a>
+            <a href="{{ moduleURL('aggregator2/get', {'id': name, 'mimetype': 'application/xml'}) }} ">[XML]</a>
         </li>
     {% endfor%}
 
