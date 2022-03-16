@@ -95,12 +95,12 @@ class EntitySource
         $this->aggregator = $aggregator;
 
         $this->url = $config->getString('url');
-        $this->sslCAFile = $config->getString('ssl.cafile', null);
+        $this->sslCAFile = $config->getOptionalString('ssl.cafile', null);
         if ($this->sslCAFile === null) {
             $this->sslCAFile = $aggregator->getCAFile();
         }
 
-        $this->certificate = $config->getString('cert', null);
+        $this->certificate = $config->getOptionalString('cert', null);
 
         $this->cacheId = sha1($this->url);
         $this->cacheTag = sha1(serialize($config));

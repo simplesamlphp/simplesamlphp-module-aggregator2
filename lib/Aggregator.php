@@ -198,31 +198,31 @@ class Aggregator
         $this->id = $id;
         $this->logLoc = 'aggregator2:' . $this->id . ': ';
 
-        $this->cronTag = $config->getString('cron.tag', null);
+        $this->cronTag = $config->getOptionalString('cron.tag', null);
 
-        $this->cacheDirectory = $config->getString('cache.directory', null);
+        $this->cacheDirectory = $config->getOptionalString('cache.directory', null);
         if ($this->cacheDirectory !== null) {
             $this->cacheDirectory = $sysUtils->resolvePath($this->cacheDirectory);
         }
 
-        $this->cacheGenerated = $config->getInteger('cache.generated', null);
+        $this->cacheGenerated = $config->getOptionalInteger('cache.generated', null);
         if ($this->cacheGenerated !== null) {
             $this->cacheId = sha1($this->id);
             $this->cacheTag = sha1(serialize($config));
         }
 
         // configure entity IDs excluded by default
-        $this->excludeEntities($config->getArrayize('exclude', []));
+        $this->excludeEntities($config->getOptionalArrayize('exclude', []));
 
         // configure filters
-        $this->setFilters($config->getArrayize('filter', []));
+        $this->setFilters($config->getOptionalArrayize('filter', []));
 
-        $this->validLength = $config->getInteger('valid.length', 7 * 24 * 60 * 60);
+        $this->validLength = $config->getOptionalInteger('valid.length', 7 * 24 * 60 * 60);
 
         $globalConfig = Configuration::getInstance();
         $certDir = $globalConfig->getPathValue('certdir', 'cert/');
 
-        $signKey = $config->getString('sign.privatekey', null);
+        $signKey = $config->getOptionalString('sign.privatekey', null);
         if ($signKey !== null) {
             $signKey = $sysUtils->resolvePath($signKey, $certDir);
             $sk = @file_get_contents($signKey);
@@ -232,9 +232,9 @@ class Aggregator
             $this->signKey = $sk;
         }
 
-        $this->signKeyPass = $config->getString('sign.privatekey_pass', null);
+        $this->signKeyPass = $config->getOptionalString('sign.privatekey_pass', null);
 
-        $signCert = $config->getString('sign.certificate', null);
+        $signCert = $config->getOptionalString('sign.certificate', null);
         if ($signCert !== null) {
             $signCert = $sysUtils->resolvePath($signCert, $certDir);
             $sc = @file_get_contents($signCert);
@@ -244,17 +244,17 @@ class Aggregator
             $this->signCert = $sc;
         }
 
-        $this->signAlg = $config->getString('sign.algorithm', XMLSecurityKey::RSA_SHA256);
+        $this->signAlg = $config->getOptionalString('sign.algorithm', XMLSecurityKey::RSA_SHA256);
         if (!in_array($this->signAlg, self::$SUPPORTED_SIGNATURE_ALGORITHMS)) {
             throw new Exception('Unsupported signature algorithm ' . var_export($this->signAlg, true));
         }
 
-        $this->sslCAFile = $config->getString('ssl.cafile', null);
+        $this->sslCAFile = $config->getOptionalString('ssl.cafile', null);
 
-        $this->regInfo = $config->getArray('RegistrationInfo', []);
-        $this->pubInfo = $config->getArray('PublicationInfo', []);
+        $this->regInfo = $config->getOptionalArray('RegistrationInfo', []);
+        $this->pubInfo = $config->getOptionalArray('PublicationInfo', []);
 
-        $this->initSources($config->getArray('sources', []));
+        $this->initSources($config->getOptionalArray('sources', []));
     }
 
 
@@ -283,7 +283,7 @@ class Aggregator
     {
         $config = Configuration::getConfig('module_aggregator2.php');
         /** @psalm-suppress PossiblyNullArgument */
-        return new Aggregator($id, $config->getConfigItem($id, []));
+        return new Aggregator($id, $config->getOptionalConfigItem($id, []));
     }
 
 
