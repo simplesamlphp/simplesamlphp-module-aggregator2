@@ -109,7 +109,11 @@ class AggregatorTest extends TestCase
         $request = Request::create(
             '/',
             'GET',
-            ['id' => 'abc123', 'set' => 'example,test,bogus', 'exclude' => 'test,example']
+            [
+                'id' => 'abc123',
+                'set' => 'example,test,bogus',
+                'exclude' => 'test,example',
+            ]
         );
 
         $c = new Controller\Aggregator($this->config, $this->session);
@@ -130,7 +134,12 @@ class AggregatorTest extends TestCase
         $request = Request::create(
             '/',
             'GET',
-            ['id' => 'abc123', 'set' => 'example,test,bogus', 'exclude' => 'test,example', 'mimetype' => 'text/plain']
+            [
+                'id' => 'abc123',
+                'set' => 'example,test,bogus',
+                'exclude' => 'test,example',
+                'mimetype' => 'text/plain',
+            ]
         );
 
         $c = new Controller\Aggregator($this->config, $this->session);
@@ -151,7 +160,12 @@ class AggregatorTest extends TestCase
         $request = Request::create(
             '/',
             'GET',
-            ['id' => 'abc123', 'set' => 'example,test,bogus', 'exclude' => 'test,example', 'mimetype' => 'something/stupid']
+            [
+                'id' => 'abc123',
+                'set' => 'example,test,bogus',
+                'exclude' => 'test,example',
+                'mimetype' => 'something/stupid',
+            ]
         );
 
         $c = new Controller\Aggregator($this->config, $this->session);
