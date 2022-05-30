@@ -30,6 +30,16 @@ where `dev-master` instructs Composer to install the `master` branch from the Gi
 [releases](https://github.com/simplesamlphp/simplesamlphp-module-aggregator2/releases) available if you
 want to use a stable version of the module.
 
+To use this module, enable the aggregator2 module: in `config.php`, search
+for the `module.enable` key and set `aggregator2` to true:
+
+```
+    'module.enable' => [
+         'aggregator2' => true,
+         …
+    ],
+```
+
 Configuration
 -------------
 
