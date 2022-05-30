@@ -24,7 +24,7 @@ Just execute the following command in the root of your SimpleSAMLphp
 installation:
 
 ```bash
-vendor/bin/composer.phar require simplesamlphp/simplesamlphp-module-aggregator2:dev-master
+vendor/bin/composer require simplesamlphp/simplesamlphp-module-aggregator2:dev-master
 ```
 
 where `dev-master` instructs Composer to install the `master` branch from the Git
