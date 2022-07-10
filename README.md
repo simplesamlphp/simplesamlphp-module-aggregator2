@@ -160,7 +160,7 @@ The aggregator can be configured with the following options:
     *Note*: this option will not filter the entities in the cached metadata
             sources. It will only act as a default configuration for the
             generation of the metadata aggregate, and therefore can be
-            overriden per request.
+            overridden per request.
 
 [MDRPI]: https://simplesamlphp.org/docs/stable/simplesamlphp-metadata-extensions-rpi
 
