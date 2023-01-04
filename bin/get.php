@@ -1,7 +1,7 @@
 #!/usr/bin/env php
 <?php
 
-require_once(dirname(dirname(dirname(dirname(__FILE__)))) . '/lib/_autoload.php');
+require_once(dirname(__FILE__, 4) . '/lib/_autoload.php');
 
 if ($argc < 2) {
     fwrite(STDERR, "Missing aggregator id.\n");
