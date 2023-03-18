@@ -23,7 +23,7 @@
     "require": {
         "php": "^8.0",
         "simplesamlphp/assert": "^1.0.4",
-        "simplesamlphp/simplesamlphp": "dev-master"
+        "simplesamlphp/simplesamlphp": "3.0.x-dev"
     },
     "require-dev": {
         "simplesamlphp/simplesamlphp-test-framework": "^1.5.4"
