@@ -1,6 +1,9 @@
 <?php
 
+declare(strict_types=1);
+
 use Exception;
+use SimpleSAML\Assert\Assert;
 use SimpleSAML\Configuration;
 use SimpleSAML\Module\aggregator2\Aggregator;
 
@@ -11,8 +14,8 @@ use SimpleSAML\Module\aggregator2\Aggregator;
  */
 function aggregator2_hook_cron(array &$croninfo): void
 {
-    assert('array_key_exists("summary", $croninfo)');
-    assert('array_key_exists("tag", $croninfo)');
+    Assert::keyExists($croninfo, 'summary');
+    Assert::keyExists($croninfo, 'tag');
 
     $cronTag = $croninfo['tag'];
 
