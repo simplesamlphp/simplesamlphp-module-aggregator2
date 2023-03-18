@@ -23,11 +23,10 @@
     "require": {
         "php": "^8.0",
         "simplesamlphp/assert": "^1.0.4",
-        "simplesamlphp/composer-module-installer": "^1.3.4",
-        "simplesamlphp/simplesamlphp": "^2.0.0"
+        "simplesamlphp/simplesamlphp": "dev-master"
     },
     "require-dev": {
-        "simplesamlphp/simplesamlphp-test-framework": "~1.5.4"
+        "simplesamlphp/simplesamlphp-test-framework": "^1.5.4"
     },
     "config": {
         "allow-plugins": {
