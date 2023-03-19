@@ -9,7 +9,6 @@
         <directory name="bin" />
         <directory name="src" />
         <directory name="hooks" />
-        <directory name="tests" />
     </projectFiles>
 
     <issueHandlers>
@@ -37,12 +36,5 @@
                 <file name="bin/update.php" />
             </errorLevel>
         </MissingFile>
-
-        <!-- Ignore UnresolvableInclude -->
-        <UnresolvableInclude>
-            <errorLevel type="suppress">
-                <file name="tests/bootstrap.php" />
-            </errorLevel>
-        </UnresolvableInclude>
     </issueHandlers>
 </psalm>
