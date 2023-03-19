@@ -22,10 +22,15 @@
     },
     "require": {
         "php": "^8.0",
+        "ext-dom": "*",
+
+        "robrichards/xmlseclibs": "^3.1.1",
         "simplesamlphp/assert": "^1.0.4",
-        "simplesamlphp/simplesamlphp": "3.0.x-dev"
+        "simplesamlphp/saml2": "^4.4",
+        "symfony/http-foundation": "^6.0"
     },
     "require-dev": {
+        "simplesamlphp/simplesamlphp": "3.0.x-dev",
         "simplesamlphp/simplesamlphp-test-framework": "^1.5.4"
     },
     "config": {
