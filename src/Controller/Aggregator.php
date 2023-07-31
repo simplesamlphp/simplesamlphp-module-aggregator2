@@ -24,13 +24,7 @@ use Symfony\Component\HttpFoundation\Response;
 class Aggregator
 {
     /** @var \SimpleSAML\Configuration */
-    protected Configuration $config;
-
-    /** @var \SimpleSAML\Configuration */
     protected Configuration $moduleConfig;
-
-    /** @var \SimpleSAML\Session */
-    protected Session $session;
 
     /** @var string[] */
     private static array $allowedMimeTypes = [
@@ -50,12 +44,10 @@ class Aggregator
      * @throws \Exception
      */
     public function __construct(
-        Configuration $config,
-        Session $session
+        protected Configuration $config,
+        protected Session $session
     ) {
-        $this->config = $config;
         $this->moduleConfig = Configuration::getConfig('module_aggregator2.php');
-        $this->session = $session;
     }
 
 

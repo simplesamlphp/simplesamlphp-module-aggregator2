@@ -1,6 +1,11 @@
+---
+
 aggregator-main:
     path:       /
     defaults:   { _controller: 'SimpleSAML\Module\aggregator2\Controller\Aggregator::main' }
+    methods:    GET
+
 aggregator-get:
     path:       /get
     defaults:   { _controller: 'SimpleSAML\Module\aggregator2\Controller\Aggregator::get' }
+    methods:    GET
