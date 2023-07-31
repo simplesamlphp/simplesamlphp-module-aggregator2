@@ -14,6 +14,7 @@ use SAML2\XML\mdrpi\PublicationInfo;
 use SimpleSAML\Configuration;
 use SimpleSAML\Logger;
 use SimpleSAML\Utils;
+use SimpleSAML\XMLSecurity\Constants as C;
 
 /**
  * Class which implements a basic metadata aggregator.
@@ -27,12 +28,7 @@ class Aggregator
      *
      * @var array
      */
-    public static array $SUPPORTED_SIGNATURE_ALGORITHMS = [
-        XMLSecurityKey::RSA_SHA1,
-        XMLSecurityKey::RSA_SHA256,
-        XMLSecurityKey::RSA_SHA384,
-        XMLSecurityKey::RSA_SHA512,
-    ];
+    public static array $SUPPORTED_SIGNATURE_ALGORITHMS = C::$RSA_DIGESTS;
 
     /**
      * The ID of this aggregator.

@@ -26,11 +26,11 @@
 
         "robrichards/xmlseclibs": "^3.1.1",
         "simplesamlphp/assert": "^1.0.4",
-        "simplesamlphp/saml2": "^4.4",
-        "symfony/http-foundation": "^6.0"
+        "simplesamlphp/saml2": "^5.0@dev",
+        "simplesamlphp/simplesamlphp": "^3@dev",
+        "symfony/http-foundation": "^5.4|^6"
     },
     "require-dev": {
-        "simplesamlphp/simplesamlphp": "3.0.x-dev",
         "simplesamlphp/simplesamlphp-test-framework": "^1.5.4"
     },
     "config": {
