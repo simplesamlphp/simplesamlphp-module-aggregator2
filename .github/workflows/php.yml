@@ -11,7 +11,7 @@ on:  # yamllint disable-line rule:truthy
     branches: [master, release-*]
     paths-ignore:
       - '**.md'
-  workflow_dispatch
+  workflow_dispatch:
 
 jobs:
   linter:
@@ -270,6 +270,7 @@ jobs:
 
       - name: Codecov
         uses: codecov/codecov-action@v3
+        with:
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: true
           verbose: true
