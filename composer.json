@@ -31,12 +31,14 @@
         "symfony/http-foundation": "^6.4"
     },
     "require-dev": {
-        "simplesamlphp/simplesamlphp-test-framework": "^1.5"
+        "simplesamlphp/simplesamlphp-test-framework": "^1.5",
+        "squizlabs/php_codesniffer": "dev-master"
     },
     "config": {
         "allow-plugins": {
             "composer/package-versions-deprecated": true,
-            "simplesamlphp/composer-module-installer": true
+            "simplesamlphp/composer-module-installer": true,
+            "dealerdirect/phpcodesniffer-composer-installer": true
         }
     }
 }

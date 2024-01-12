@@ -6,7 +6,6 @@ namespace SimpleSAML\Module\aggregator2\Controller;
 
 use SimpleSAML\Configuration;
 use SimpleSAML\Error;
-use SimpleSAML\Module;
 use SimpleSAML\Module\aggregator2\Aggregator as AttributeAggregator;
 use SimpleSAML\Session;
 use SimpleSAML\Utils;

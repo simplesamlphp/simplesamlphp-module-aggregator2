@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SimpleSAML\Module\aggregator2;
 
 use Exception;
@@ -9,8 +11,8 @@ use SAML2\SignedElement;
 use SAML2\Utils as SAML2_Utils;
 use SAML2\XML\md\EntitiesDescriptor;
 use SAML2\XML\md\EntityDescriptor;
-use SAML2\XML\mdrpi\RegistrationInfo;
 use SAML2\XML\mdrpi\PublicationInfo;
+use SAML2\XML\mdrpi\RegistrationInfo;
 use SimpleSAML\Configuration;
 use SimpleSAML\Logger;
 use SimpleSAML\Utils;
@@ -23,13 +25,6 @@ use SimpleSAML\XMLSecurity\Constants as C;
  */
 class Aggregator
 {
-    /**
-     * The list of signature algorithms supported by the aggregator.
-     *
-     * @var array
-     */
-    public static array $SUPPORTED_SIGNATURE_ALGORITHMS = C::$RSA_DIGESTS;
-
     /**
      * The ID of this aggregator.
      *
@@ -241,7 +236,7 @@ class Aggregator
         }
 
         $this->signAlg = $config->getOptionalString('sign.algorithm', XMLSecurityKey::RSA_SHA256);
-        if (!in_array($this->signAlg, self::$SUPPORTED_SIGNATURE_ALGORITHMS)) {
+        if (!in_array($this->signAlg, C::$RSA_DIGESTS)) {
             throw new Exception('Unsupported signature algorithm ' . var_export($this->signAlg, true));
         }
 
