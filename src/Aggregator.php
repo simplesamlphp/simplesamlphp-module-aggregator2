@@ -4,19 +4,43 @@ declare(strict_types=1);
 
 namespace SimpleSAML\Module\aggregator2;
 
+use DateInterval;
+use DateTimeImmutable;
+use DateTimeZone;
 use Exception;
-use RobRichards\XMLSecLibs\XMLSecurityKey;
-use SAML2\Constants;
-use SAML2\SignedElement;
-use SAML2\Utils as SAML2_Utils;
-use SAML2\XML\md\EntitiesDescriptor;
-use SAML2\XML\md\EntityDescriptor;
-use SAML2\XML\mdrpi\PublicationInfo;
-use SAML2\XML\mdrpi\RegistrationInfo;
+use SimpleSAML\Assert\Assert;
 use SimpleSAML\Configuration;
 use SimpleSAML\Logger;
+use SimpleSAML\SAML2\Constants as C;
+use SimpleSAML\SAML2\XML\md\EntitiesDescriptor;
+use SimpleSAML\SAML2\XML\md\EntityDescriptor;
+use SimpleSAML\SAML2\XML\md\Extensions;
+use SimpleSAML\SAML2\XML\mdrpi\PublicationInfo;
+use SimpleSAML\SAML2\XML\mdrpi\RegistrationInfo;
 use SimpleSAML\Utils;
-use SimpleSAML\XMLSecurity\Constants as C;
+use SimpleSAML\XMLSecurity\Alg\Signature\SignatureAlgorithmFactory;
+use SimpleSAML\XMLSecurity\CryptoEncoding\PEM;
+use SimpleSAML\XMLSecurity\Key\PrivateKey;
+use SimpleSAML\XMLSecurity\XML\ds\KeyInfo;
+use SimpleSAML\XMLSecurity\XML\ds\X509Certificate;
+use SimpleSAML\XMLSecurity\XML\ds\X509Data;
+use SimpleSAML\XMLSecurity\XML\SignableElementInterface;
+
+use function array_intersect;
+use function array_keys;
+use function array_merge;
+use function array_unique;
+use function explode;
+use function file_exists;
+use function file_get_contents;
+use function get_class;
+use function in_array;
+use function intval;
+use function serialize;
+use function sha1;
+use function strval;
+use function time;
+use function var_export;
 
 /**
  * Class which implements a basic metadata aggregator.
@@ -74,9 +98,9 @@ class Aggregator
     /**
      * Duration we should cache generated metadata.
      *
-     * @var int|null
+     * @var \DateInterval|null
      */
-    protected ?int $cacheGenerated;
+    protected ?DateInterval $cacheGenerated = null;
 
     /**
      * An array of entity IDs to exclude from the aggregate.
@@ -95,14 +119,14 @@ class Aggregator
      *
      * @var array
      */
-    protected $protocols = [];
+    protected array $protocols = [];
 
     /**
      * An array of roles to filter the aggregate by. Keys can be any of:
      *
-     * - \SAML2\XML\md\IDPSSODescriptor
-     * - \SAML2\XML\md\SPSSODescriptor
-     * - \SAML2\XML\md\AttributeAuthorityDescriptor
+     * - SimpleSAML\SAML2\XML\md\IDPSSODescriptor
+     * - SimpleSAML\SAML2\XML\md\SPSSODescriptor
+     * - SimpleSAML\SAML2\XML\md\AttributeAuthorityDescriptor
      *
      * Values will be true if enabled, false otherwise.
      *
@@ -191,13 +215,15 @@ class Aggregator
 
         $this->cronTag = $config->getOptionalString('cron.tag', null);
 
-        $this->cacheDirectory = $config->getOptionalString('cache.directory', null);
+        $this->cacheDirectory = $config->getOptionalString('cache.directory', $sysUtils->getTempDir());
         if ($this->cacheDirectory !== null) {
             $this->cacheDirectory = $sysUtils->resolvePath($this->cacheDirectory);
         }
 
-        $this->cacheGenerated = $config->getOptionalInteger('cache.generated', null);
-        if ($this->cacheGenerated !== null) {
+        $cacheGenerated = $config->getOptionalString('cache.generated', null);
+        Assert::nullOrValidDuration($cacheGenerated);
+        if ($cacheGenerated !== null) {
+            $this->cacheGenerated = new DateInterval($cacheGenerated);
             $this->cacheId = sha1($this->id);
             $this->cacheTag = sha1(serialize($config));
         }
@@ -216,11 +242,7 @@ class Aggregator
         $signKey = $config->getOptionalString('sign.privatekey', null);
         if ($signKey !== null) {
             $signKey = $sysUtils->resolvePath($signKey, $certDir);
-            $sk = @file_get_contents($signKey);
-            if ($sk === false) {
-                throw new Exception('Unable to load private key from ' . var_export($signKey, true));
-            }
-            $this->signKey = $sk;
+            $this->signKey = PEM::fromFile($signKey);
         }
 
         $this->signKeyPass = $config->getOptionalString('sign.privatekey_pass', null);
@@ -228,15 +250,11 @@ class Aggregator
         $signCert = $config->getOptionalString('sign.certificate', null);
         if ($signCert !== null) {
             $signCert = $sysUtils->resolvePath($signCert, $certDir);
-            $sc = @file_get_contents($signCert);
-            if ($sc === false) {
-                throw new Exception('Unable to load certificate file from ' . var_export($signCert, true));
-            }
-            $this->signCert = $sc;
+            $this->signCert = PEM::fromFile($signCert);
         }
 
-        $this->signAlg = $config->getOptionalString('sign.algorithm', XMLSecurityKey::RSA_SHA256);
-        if (!in_array($this->signAlg, C::$RSA_DIGESTS)) {
+        $this->signAlg = $config->getOptionalString('sign.algorithm', C::SIG_RSA_SHA256);
+        if (!in_array($this->signAlg, array_keys(C::$RSA_DIGESTS))) {
             throw new Exception('Unsupported signature algorithm ' . var_export($this->signAlg, true));
         }
 
@@ -294,10 +312,10 @@ class Aggregator
      *
      * @param string $id  The identifier of this data.
      * @param string $data  The data.
-     * @param int $expires  The timestamp the data expires.
+     * @param \DateTimeImmutable $expires  The timestamp the data expires.
      * @param string|null $tag  An extra tag that can be used to verify the validity of the cached data.
      */
-    public function addCacheItem(string $id, string $data, int $expires, string $tag = null): void
+    public function addCacheItem(string $id, string $data, DateTimeImmutable $expires, string $tag = null): void
     {
         $sysUtils = new Utils\System();
         $cacheFile = strval($this->cacheDirectory) . '/' . $id;
@@ -308,7 +326,7 @@ class Aggregator
             return;
         }
 
-        $expireInfo = (string)$expires;
+        $expireInfo = strval($expires->getTimestamp());
         if ($tag !== null) {
             $expireInfo .= ':' . $tag;
         }
@@ -415,24 +433,33 @@ class Aggregator
     /**
      * Sign the generated EntitiesDescriptor.
      */
-    protected function addSignature(SignedElement $element): void
+    protected function addSignature(SignableElementInterface $element): void
     {
         if ($this->signKey === null) {
             return;
         }
 
-        /** @var string $this->signAlg */
-        $privateKey = new XMLSecurityKey($this->signAlg, ['type' => 'private']);
-        if ($this->signKeyPass !== null) {
-            $privateKey->passphrase = $this->signKeyPass;
-        }
-        $privateKey->loadKey($this->signKey, false);
-
-        $element->setSignatureKey($privateKey);
-
+        $keyInfo = null;
         if ($this->signCert !== null) {
-            $element->setCertificates([$this->signCert]);
+            $keyInfo = new KeyInfo(
+                [
+                    new X509Data(
+                        [
+                            new X509Certificate($this->signCert->getMaterial()),
+                        ],
+                    ),
+                ],
+            );
         }
+
+        /** @var string $this->signAlg */
+        $key = PrivateKey::fromFile($this->signKey, $this->signKeyPass);
+        $signer = (new SignatureAlgorithmFactory())->getAlgorithm(
+            $this->signAlg,
+            $key
+        );
+
+        $element->sign($signer, C::C14N_EXCLUSIVE_WITHOUT_COMMENTS, $keyInfo);
     }
 
 
@@ -447,7 +474,8 @@ class Aggregator
     private static function extractEntityDescriptors(EntitiesDescriptor $entity): array
     {
         $results = [];
-        foreach ($entity->getChildren() as $child) {
+        $descriptors = array_merge($entity->getEntityDescriptors(), $entity->getEntitiesDescriptors());
+        foreach ($descriptors as $child) {
             if ($child instanceof EntityDescriptor) {
                 $results[] = $child;
                 continue;
@@ -462,84 +490,45 @@ class Aggregator
     /**
      * Retrieve all entities as an EntitiesDescriptor.
      *
-     * @return \SAML2\XML\md\EntitiesDescriptor  The entities.
+     * @return \SimpleSAML\SAML2\XML\md\EntitiesDescriptor  The entities.
      */
     protected function getEntitiesDescriptor(): EntitiesDescriptor
     {
-        $ret = new EntitiesDescriptor();
-        $now = time();
         $extensions = [];
 
         // add RegistrationInfo extension if enabled
         if (!empty($this->regInfo)) {
-            $ri = new RegistrationInfo();
-            $ri->setRegistrationInstant($now);
-            foreach ($this->regInfo as $riName => $riValues) {
-                switch ($riName) {
-                    case 'authority':
-                        $ri->setRegistrationAuthority($riValues);
-                        break;
-                    case 'instant':
-                        $ri->setRegistrationInstant(SAML2_Utils::xsDateTimeToTimestamp($riValues));
-                        break;
-                    case 'policies':
-                        $ri->setRegistrationPolicy($riValues);
-                        break;
-                    default:
-                        Logger::warning(
-                            "Unable to apply unknown configuration setting \$config['RegistrationInfo']['"
-                            . strval($riValues) . "'; skipping."
-                        );
-                        break;
-                }
-            }
-            $extensions[] = $ri;
+            $extensions[] = RegistrationInfo::fromArray($this->regInfo);
         }
 
         // add PublicationInfo extension if enabled
         if (!empty($this->pubInfo)) {
-            $pi = new PublicationInfo();
-            $pi->setCreationInstant($now);
-            foreach ($this->pubInfo as $piName => $piValues) {
-                switch ($piName) {
-                    case 'publisher':
-                        $pi->setPublisher($piValues);
-                        break;
-                    case 'publicationId':
-                        $pi->setPublicationId($piValues);
-                        break;
-                    case 'instant':
-                        $pi->setCreationInstant(SAML2_Utils::xsDateTimeToTimestamp($piValues));
-                        break;
-                    case 'policies':
-                        $pi->setUsagePolicy($piValues);
-                        break;
-                    default:
-                        Logger::warning(
-                            "Unable to apply unknown configuration setting \$config['PublicationInfo']['"
-                            . strval($piValues) . "'; skipping."
-                        );
-                        break;
-                }
-            }
-            $extensions[] = $pi;
+            $extensions[] = PublicationInfo::fromArray($this->pubInfo);
         }
-        $ret->setExtensions($extensions);
 
+        $children = [];
         foreach ($this->sources as $source) {
             $m = $source->getMetadata();
             if ($m === null) {
                 continue;
             }
+
             if ($m instanceof EntityDescriptor) {
-                $ret->addChildren($m);
+                $children[] = $m;
             } elseif ($m instanceof EntitiesDescriptor) {
-                $ret->setChildren(array_merge($ret->getChildren(), self::extractEntityDescriptors($m)));
+                $children = array_merge($children, self::extractEntityDescriptors($m));
             }
         }
+        $children = array_unique($children, SORT_REGULAR);
 
-        $ret->setChildren(array_unique($ret->getChildren(), SORT_REGULAR));
-        $ret->validUntil = $now + $this->validLength;
+        $now = new DateTimeImmutable('@' . strval(time() + $this->validLength));
+        $now = $now->setTimeZone(new DateTimeZone('Z'));
+
+        $ret = new EntitiesDescriptor(
+            entityDescriptors: $children,
+            validUntil: $now,
+            extensions: empty($extensions) ? null : new Extensions($extensions),
+        );
 
         return $ret;
     }
@@ -549,9 +538,10 @@ class Aggregator
      * Recursively traverse the children of an EntitiesDescriptor, removing those entities listed in the $entities
      * property. Returns the EntitiesDescriptor with the entities filtered out.
      *
-     * @param \SAML2\XML\md\EntitiesDescriptor $descriptor The EntitiesDescriptor from where to exclude entities.
+     * @param \SimpleSAML\SAML2\XML\md\EntitiesDescriptor $descriptor
+     *   The EntitiesDescriptor from where to exclude entities.
      *
-     * @return \SAML2\XML\md\EntitiesDescriptor The EntitiesDescriptor with excluded entities filtered out.
+     * @return \SimpleSAML\SAML2\XML\md\EntitiesDescriptor The EntitiesDescriptor with excluded entities filtered out.
      */
     protected function exclude(EntitiesDescriptor $descriptor): EntitiesDescriptor
     {
@@ -559,8 +549,9 @@ class Aggregator
             return $descriptor;
         }
 
+        $descriptors = array_merge($descriptor->getEntityDescriptors(), $descriptor->getEntitiesDescriptors());
         $filtered = [];
-        foreach ($descriptor->getChildren() as $child) {
+        foreach ($descriptors as $child) {
             if ($child instanceof EntityDescriptor) {
                 if (in_array($child->getEntityID(), $this->excluded)) {
                     continue;
@@ -573,8 +564,8 @@ class Aggregator
             }
         }
 
-        $descriptor->setChildren($filtered);
-        return $descriptor;
+
+        return new EntitiesDescriptor($filtered);
     }
 
 
@@ -583,9 +574,9 @@ class Aggregator
      * the $roles property, and support for the protocols listed in the $protocols property. Returns the
      * EntitiesDescriptor containing only those entities.
      *
-     * @param \SAML2\XML\md\EntitiesDescriptor $descriptor The EntitiesDescriptor to filter.
+     * @param \SimpleSAML\SAML2\XML\md\EntitiesDescriptor $descriptor The EntitiesDescriptor to filter.
      *
-     * @return \SAML2\XML\md\EntitiesDescriptor The EntitiesDescriptor with only the entities filtered.
+     * @return \SimpleSAML\SAML2\XML\md\EntitiesDescriptor The EntitiesDescriptor with only the entities filtered.
      */
     protected function filter(EntitiesDescriptor $descriptor): EntitiesDescriptor
     {
@@ -596,8 +587,9 @@ class Aggregator
         $enabled_roles = array_keys($this->roles, true);
         $enabled_protos = array_keys($this->protocols, true);
 
+        $descriptors = array_merge($descriptor->getEntityDescriptors(), $descriptor->getEntitiesDescriptors());
         $filtered = [];
-        foreach ($descriptor->getChildren() as $child) {
+        foreach ($descriptors as $child) {
             if ($child instanceof EntityDescriptor) {
                 foreach ($child->getRoleDescriptor() as $role) {
                     if (in_array(get_class($role), $enabled_roles)) {
@@ -616,8 +608,7 @@ class Aggregator
             }
         }
 
-        $descriptor->setChildren($filtered);
-        return $descriptor;
+        return new EntitiesDescriptor($filtered);
     }
 
 
@@ -655,31 +646,31 @@ class Aggregator
 
         // configure filters
         $this->protocols = [
-            Constants::NS_SAMLP                    => true,
+            C::NS_SAMLP => true,
         ];
         $this->roles = [
-            'SAML2_XML_md_IDPSSODescriptor'             => true,
-            'SAML2_XML_md_SPSSODescriptor'              => true,
-            'SAML2_XML_md_AttributeAuthorityDescriptor' => true,
+            'SimpleSAML\SAML2\XML\md\IDPSSODescriptor'             => true,
+            'SimpleSAML\SAML2\XML\md\SPSSODescriptor'              => true,
+            'SimpleSAML\SAML2\XML\md\AttributeAuthorityDescriptor' => true,
         ];
 
         // now translate from the options we have, to specific protocols and roles
 
         // check SAML 2.0 protocol
         $options = ['saml2', 'saml20-idp', 'saml20-sp', 'saml20-aa'];
-        $this->protocols[Constants::NS_SAMLP] = (array_intersect($set, $options) !== []);
+        $this->protocols[C::NS_SAMLP] = (array_intersect($set, $options) !== []);
 
         // check IdP
         $options = ['saml2', 'saml20-idp'];
-        $this->roles['SAML2_XML_md_IDPSSODescriptor'] = (array_intersect($set, $options) !== []);
+        $this->roles['SimpleSAML\SAML2\XML\md\IDPSSODescriptor'] = (array_intersect($set, $options) !== []);
 
         // check SP
         $options = ['saml2', 'saml20-sp'];
-        $this->roles['SAML2_XML_md_SPSSODescriptor'] = (array_intersect($set, $options) !== []);
+        $this->roles['SimpleSAML\SAML2\XML\md\SPSSODescriptor'] = (array_intersect($set, $options) !== []);
 
         // check AA
         $options = ['saml2', 'saml20-aa'];
-        $this->roles['SAML2_XML_md_AttributeAuthorityDescriptor'] = (array_intersect($set, $options) !== []);
+        $this->roles['SimpleSAML\SAML2\XML\md\AttributeAuthorityDescriptor'] = (array_intersect($set, $options) !== []);
 
         $this->cacheId = sha1($this->cacheId . serialize($this->protocols) . serialize($this->roles));
     }
@@ -701,11 +692,13 @@ class Aggregator
         $this->addSignature($ed);
 
         $xml = $ed->toXML();
-        $xml = $xml->ownerDocument->saveXML($xml);
+        $xml = $xml->ownerDocument?->saveXML($xml);
 
         if ($this->cacheGenerated !== null) {
             Logger::debug($this->logLoc . 'Saving generated metadata to cache.');
-            $this->addCacheItem($this->cacheId, $xml, time() + $this->cacheGenerated, $this->cacheTag);
+            $now = new DateTimeImmutable('now');
+            $now = $now->setTimeZone(new DateTimezone('Z'));
+            $this->addCacheItem($this->cacheId, $xml, $now->add($this->cacheGenerated), $this->cacheTag);
         }
 
         return $xml;

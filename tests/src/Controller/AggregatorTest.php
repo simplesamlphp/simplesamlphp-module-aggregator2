@@ -53,6 +53,11 @@ class AggregatorTest extends TestCase
             Configuration::loadFromArray(
                 [
                     'example' => [
+                        'sources' => [
+                            [
+                                'url' => 'tests/metadata/example.xml',
+                            ],
+                        ],
                     ],
 
                     'test' => [
@@ -74,8 +79,13 @@ class AggregatorTest extends TestCase
      */
     public function testMain(): void
     {
+        $request = Request::create(
+            '/',
+            'GET'
+        );
+
         $c = new Controller\Aggregator($this->config, $this->session);
-        $response = $c->main();
+        $response = $c->main($request);
 
         $this->assertTrue($response->isSuccessful());
         $this->assertInstanceOf(Template::class, $response);
@@ -88,7 +98,7 @@ class AggregatorTest extends TestCase
     public function testGetWithoutId(): void
     {
         $request = Request::create(
-            '/',
+            '/get',
             'GET'
         );
 
@@ -107,12 +117,12 @@ class AggregatorTest extends TestCase
     public function testGetWithId(): void
     {
         $request = Request::create(
-            '/',
+            '/get',
             'GET',
             [
-                'id' => 'abc123',
-                'set' => 'example,test,bogus',
-                'exclude' => 'test,example',
+                'id' => 'example',
+                'set' => 'saml2',
+                'exclude' => 'saml2-aa',
             ]
         );
 
@@ -121,7 +131,7 @@ class AggregatorTest extends TestCase
 
         $this->assertTrue($response->isSuccessful());
         $this->assertEquals('application/samlmetadata+xml', $response->headers->get('Content-Type'));
-        $this->assertEquals('filename=abc123.xml', $response->headers->get('Content-Disposition'));
+        $this->assertEquals('filename=example.xml', $response->headers->get('Content-Disposition'));
         $this->assertInstanceOf(Response::class, $response);
     }
 
@@ -132,12 +142,12 @@ class AggregatorTest extends TestCase
     public function testGetWithAllowedMime(): void
     {
         $request = Request::create(
-            '/',
+            '/get',
             'GET',
             [
-                'id' => 'abc123',
-                'set' => 'example,test,bogus',
-                'exclude' => 'test,example',
+                'id' => 'example',
+                'set' => 'saml2',
+                'exclude' => 'saml2-aa',
                 'mimetype' => 'text/plain',
             ]
         );
@@ -147,7 +157,7 @@ class AggregatorTest extends TestCase
 
         $this->assertTrue($response->isSuccessful());
         $this->assertEquals('text/plain', $response->headers->get('Content-Type'));
-        $this->assertEquals('filename=abc123.xml', $response->headers->get('Content-Disposition'));
+        $this->assertEquals('filename=example.xml', $response->headers->get('Content-Disposition'));
         $this->assertInstanceOf(Response::class, $response);
     }
 
@@ -158,12 +168,12 @@ class AggregatorTest extends TestCase
     public function testGetWithNonAllowedMime(): void
     {
         $request = Request::create(
-            '/',
+            '/get',
             'GET',
             [
-                'id' => 'abc123',
-                'set' => 'example,test,bogus',
-                'exclude' => 'test,example',
+                'id' => 'example',
+                'set' => 'saml2',
+                'exclude' => 'saml2-aa',
                 'mimetype' => 'something/stupid',
             ]
         );
@@ -173,7 +183,7 @@ class AggregatorTest extends TestCase
 
         $this->assertTrue($response->isSuccessful());
         $this->assertEquals('application/samlmetadata+xml', $response->headers->get('Content-Type'));
-        $this->assertEquals('filename=abc123.xml', $response->headers->get('Content-Disposition'));
+        $this->assertEquals('filename=example.xml', $response->headers->get('Content-Disposition'));
         $this->assertInstanceOf(Response::class, $response);
     }
 }

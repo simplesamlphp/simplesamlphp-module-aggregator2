@@ -70,14 +70,14 @@ $config = [
         'cache.directory' => '/var/cache/simplesaml-aggregator2',
 
         /*
-         * This is the number of seconds we will cache the metadata file we generate.
-         * This should be a longer time than the interval between each time the cron
+         * This is the period of time we will cache the metadata file we generate.
+         * This should be a longer interval than the one between each time the cron
          * job is executed.
          *
          * This option is optional. If unspecified, the metadata will be generated
          * on every request.
          */
-        'cache.generated' => 24 * 60 * 60,
+        'cache.generated' => 'PT3600S',
 
         /*
          * The generated metadata will have a validUntil set to the time it is generated

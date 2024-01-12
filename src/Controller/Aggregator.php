@@ -10,8 +10,14 @@ use SimpleSAML\Module\aggregator2\Aggregator as AttributeAggregator;
 use SimpleSAML\Session;
 use SimpleSAML\Utils;
 use SimpleSAML\XHTML\Template;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\{Request, Response};
+
+use function array_keys;
+use function explode;
+use function in_array;
+use function strlen;
+use function strval;
+
 
 /**
  * Controller class for the aggregator2 module.
