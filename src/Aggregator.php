@@ -200,6 +200,13 @@ class Aggregator
      */
     protected array $pubInfo;
 
+    /**
+     * The name for the EntitiesDescriptor
+     *
+     * @var string|null
+     */
+    protected ?string $name;
+
 
     /**
      * Initialize this aggregator.
@@ -211,8 +218,8 @@ class Aggregator
     {
         $sysUtils = new Utils\System();
         $this->id = $id;
+        $this->name = $config->getOptionalString('name', null);
         $this->logLoc = 'aggregator2:' . $this->id . ': ';
-
         $this->cronTag = $config->getOptionalString('cron.tag', null);
 
         $this->cacheDirectory = $config->getOptionalString('cache.directory', $sysUtils->getTempDir());
@@ -528,6 +535,7 @@ class Aggregator
             entityDescriptors: $children,
             validUntil: $now,
             extensions: empty($extensions) ? null : new Extensions($extensions),
+            Name: $this->name,
         );
 
         return $ret;
