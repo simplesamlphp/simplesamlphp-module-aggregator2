@@ -18,7 +18,6 @@ use function in_array;
 use function strlen;
 use function strval;
 
-
 /**
  * Controller class for the aggregator2 module.
  *

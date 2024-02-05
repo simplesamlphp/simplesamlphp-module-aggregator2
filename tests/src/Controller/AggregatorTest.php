@@ -79,13 +79,8 @@ class AggregatorTest extends TestCase
      */
     public function testMain(): void
     {
-        $request = Request::create(
-            '/',
-            'GET'
-        );
-
         $c = new Controller\Aggregator($this->config, $this->session);
-        $response = $c->main($request);
+        $response = $c->main();
 
         $this->assertTrue($response->isSuccessful());
         $this->assertInstanceOf(Template::class, $response);
