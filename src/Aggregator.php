@@ -80,9 +80,9 @@ class Aggregator
     /**
      * The entity sources.
      *
-     * Array of sspmod_aggregator2_EntitySource objects.
+     * Array of \SimpleSAML\Module\aggregator2\EntitySource objects.
      *
-     * @var array
+     * @var array<\SimpleSAML\Module\aggregator2\EntitySource>
      */
     protected array $sources = [];
 
@@ -117,7 +117,7 @@ class Aggregator
      *
      * Values will be true if enabled, false otherwise.
      *
-     * @var array
+     * @var string[]
      */
     protected array $protocols = [];
 
@@ -130,16 +130,16 @@ class Aggregator
      *
      * Values will be true if enabled, false otherwise.
      *
-     * @var array
+     * @var array<\SimpleSAML\SAML2\XML\md\AbstractSSODescriptor>
      */
     protected array $roles;
 
     /**
      * The key we should use to sign the metadata.
      *
-     * @var string|null
+     * @var \SimpleSAML\XMLSecurity\CryptoEncoding\PEM|null
      */
-    protected ?string $signKey = null;
+    protected ?PEM $signKey = null;
 
     /**
      * The password for the private key.
@@ -151,9 +151,9 @@ class Aggregator
     /**
      * The certificate of the key we sign the metadata with.
      *
-     * @var string|null
+     * @var \SimpleSAML\XMLSecurity\CryptoEncoding\PEM|null
      */
-    protected ?string $signCert;
+    protected ?PEM $signCert;
 
     /**
      * The algorithm to use for metadata signing.
@@ -189,14 +189,14 @@ class Aggregator
     /**
      * The registration information for our generated metadata.
      *
-     * @var array
+     * @var string[]
      */
     protected array $regInfo;
 
     /**
      * The publication information for our generated metadata.
      *
-     * @var array
+     * @var string[]
      */
     protected array $pubInfo;
 
@@ -279,7 +279,7 @@ class Aggregator
      *
      * This is called from the constructor, and can be overridden in subclasses.
      *
-     * @param array $sources  The sources as an array of \SimpleSAML\Configuration objects.
+     * @param array<mixed> $sources  The sources as an array of \SimpleSAML\Configuration objects.
      */
     protected function initSources(array $sources): void
     {
