@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SimpleSAML\Test\Module\aggregator\Controller;
 
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use SimpleSAML\Configuration;
 use SimpleSAML\Error;
@@ -15,9 +16,8 @@ use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Set of tests for the controllers in the "aggregator2" module.
- *
- * @covers \SimpleSAML\Module\aggregator2\Controller\Aggregator
  */
+#[CoversClass(Controller\Aggregator::class)]
 class AggregatorTest extends TestCase
 {
     /** @var \SimpleSAML\Configuration */
