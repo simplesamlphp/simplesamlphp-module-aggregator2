@@ -139,7 +139,7 @@ class EntitySource
             $context['ssl']['cafile'] = $configUtils->getCertPath($this->sslCAFile);
             Logger::debug(
                 $this->logLoc . 'Validating https connection against CA certificate(s) found in ' .
-                var_export($context['ssl']['cafile'], true)
+                var_export($context['ssl']['cafile'], true),
             );
             $context['ssl']['verify_peer'] = true;
             $context['ssl']['CN_match'] = parse_url($this->url, PHP_URL_HOST);
@@ -171,7 +171,7 @@ class EntitySource
         if (count($root) === 0) {
             Logger::error(
                 $this->logLoc . 'No <EntityDescriptor> or <EntitiesDescriptor> in metadata from ' .
-                var_export($this->url, true)
+                var_export($this->url, true),
             );
             return null;
         }
@@ -179,7 +179,7 @@ class EntitySource
         if (count($root) > 1) {
             Logger::error(
                 $this->logLoc . 'More than one <EntityDescriptor> or <EntitiesDescriptor> in metadata from ' .
-                var_export($this->url, true)
+                var_export($this->url, true),
             );
             return null;
         }
@@ -194,7 +194,7 @@ class EntitySource
         } catch (Exception $e) {
             Logger::error(
                 $this->logLoc . 'Unable to parse metadata from ' .
-                var_export($this->url, true) . ': ' . $e->getMessage()
+                var_export($this->url, true) . ': ' . $e->getMessage(),
             );
             return null;
         }

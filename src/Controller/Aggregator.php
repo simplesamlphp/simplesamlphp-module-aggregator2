@@ -49,7 +49,7 @@ class Aggregator
      */
     public function __construct(
         protected Configuration $config,
-        protected Session $session
+        protected Session $session,
     ) {
         $this->moduleConfig = Configuration::getConfig('module_aggregator2.php');
     }

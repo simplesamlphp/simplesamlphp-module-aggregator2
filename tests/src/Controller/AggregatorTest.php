@@ -42,7 +42,7 @@ class AggregatorTest extends TestCase
                 'module.enable' => ['aggregator2' => true],
             ],
             '[ARRAY]',
-            'simplesaml'
+            'simplesaml',
         );
 
         $this->session = Session::getSessionFromRequest();
@@ -67,9 +67,9 @@ class AggregatorTest extends TestCase
                     ],
                 ],
                 '[ARRAY]',
-                'simplesaml'
+                'simplesaml',
             ),
-            'module_aggregator2.php'
+            'module_aggregator2.php',
         );
     }
 
@@ -94,7 +94,7 @@ class AggregatorTest extends TestCase
     {
         $request = Request::create(
             '/get',
-            'GET'
+            'GET',
         );
 
         $c = new Controller\Aggregator($this->config, $this->session);
@@ -118,7 +118,7 @@ class AggregatorTest extends TestCase
                 'id' => 'example',
                 'set' => 'saml2',
                 'exclude' => 'saml2-aa',
-            ]
+            ],
         );
 
         $c = new Controller\Aggregator($this->config, $this->session);
@@ -144,7 +144,7 @@ class AggregatorTest extends TestCase
                 'set' => 'saml2',
                 'exclude' => 'saml2-aa',
                 'mimetype' => 'text/plain',
-            ]
+            ],
         );
 
         $c = new Controller\Aggregator($this->config, $this->session);
@@ -170,7 +170,7 @@ class AggregatorTest extends TestCase
                 'set' => 'saml2',
                 'exclude' => 'saml2-aa',
                 'mimetype' => 'something/stupid',
-            ]
+            ],
         );
 
         $c = new Controller\Aggregator($this->config, $this->session);

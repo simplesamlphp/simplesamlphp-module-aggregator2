@@ -463,7 +463,7 @@ class Aggregator
         $key = PrivateKey::fromFile($this->signKey, $this->signKeyPass);
         $signer = (new SignatureAlgorithmFactory())->getAlgorithm(
             $this->signAlg,
-            $key
+            $key,
         );
 
         $element->sign($signer, C::C14N_EXCLUSIVE_WITHOUT_COMMENTS, $keyInfo);
