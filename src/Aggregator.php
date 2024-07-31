@@ -30,6 +30,8 @@ use function array_intersect;
 use function array_keys;
 use function array_merge;
 use function array_unique;
+use function base64_encode;
+use function chunk_split;
 use function explode;
 use function file_exists;
 use function file_get_contents;
@@ -40,6 +42,7 @@ use function serialize;
 use function sha1;
 use function strval;
 use function time;
+use function trim;
 use function var_export;
 
 /**
@@ -452,7 +455,9 @@ class Aggregator
                 [
                     new X509Data(
                         [
-                            new X509Certificate($this->signCert->getMaterial()),
+                            new X509Certificate(
+                                trim(chunk_split(base64_encode($this->signCert->Data()), 64, "\n")),
+                            ),
                         ],
                     ),
                 ],
