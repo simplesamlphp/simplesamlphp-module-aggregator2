@@ -19,8 +19,8 @@ use SimpleSAML\SAML2\XML\mdrpi\PublicationInfo;
 use SimpleSAML\SAML2\XML\mdrpi\RegistrationInfo;
 use SimpleSAML\Utils;
 use SimpleSAML\XMLSecurity\Alg\Signature\SignatureAlgorithmFactory;
-use SimpleSAML\XMLSecurity\CryptoEncoding\PEM;
 use SimpleSAML\XMLSecurity\Key\PrivateKey;
+use SimpleSAML\XMLSecurity\Key\PublicKey;
 use SimpleSAML\XMLSecurity\XML\ds\KeyInfo;
 use SimpleSAML\XMLSecurity\XML\ds\X509Certificate;
 use SimpleSAML\XMLSecurity\XML\ds\X509Data;
@@ -120,7 +120,7 @@ class Aggregator
      *
      * Values will be true if enabled, false otherwise.
      *
-     * @var string[]
+     * @var array<string, bool>
      */
     protected array $protocols = [];
 
@@ -133,30 +133,23 @@ class Aggregator
      *
      * Values will be true if enabled, false otherwise.
      *
-     * @var array<\SimpleSAML\SAML2\XML\md\AbstractSSODescriptor>
+     * @var array<string, bool>
      */
     protected array $roles;
 
     /**
      * The key we should use to sign the metadata.
      *
-     * @var \SimpleSAML\XMLSecurity\CryptoEncoding\PEM|null
+     * @var \SimpleSAML\XMLSecurity\Key\PrivateKey|null
      */
-    protected ?PEM $signKey = null;
-
-    /**
-     * The password for the private key.
-     *
-     * @var string|null
-     */
-    protected ?string $signKeyPass;
+    protected ?PrivateKey $signKey = null;
 
     /**
      * The certificate of the key we sign the metadata with.
      *
-     * @var \SimpleSAML\XMLSecurity\CryptoEncoding\PEM|null
+     * @var \SimpleSAML\XMLSecurity\Key\PublicKey|null
      */
-    protected ?PEM $signCert;
+    protected ?PublicKey $signCert;
 
     /**
      * The algorithm to use for metadata signing.
@@ -249,18 +242,17 @@ class Aggregator
         $globalConfig = Configuration::getInstance();
         $certDir = $globalConfig->getPathValue('certdir', 'cert/');
 
+        $signKeyPass = $config->getOptionalString('sign.privatekey_pass', null);
         $signKey = $config->getOptionalString('sign.privatekey', null);
         if ($signKey !== null) {
             $signKey = $sysUtils->resolvePath($signKey, $certDir);
-            $this->signKey = PEM::fromFile($signKey);
+            $this->signKey = PrivateKey::fromFile($signKey, $signKeyPass);
         }
-
-        $this->signKeyPass = $config->getOptionalString('sign.privatekey_pass', null);
 
         $signCert = $config->getOptionalString('sign.certificate', null);
         if ($signCert !== null) {
             $signCert = $sysUtils->resolvePath($signCert, $certDir);
-            $this->signCert = PEM::fromFile($signCert);
+            $this->signCert = PublicKey::fromFile($signCert);
         }
 
         $this->signAlg = $config->getOptionalString('sign.algorithm', C::SIG_RSA_SHA256);
@@ -456,7 +448,7 @@ class Aggregator
                     new X509Data(
                         [
                             new X509Certificate(
-                                trim(chunk_split(base64_encode($this->signCert->Data()), 64, "\n")),
+                                trim(chunk_split(base64_encode($this->signCert->getPEM()->data()), 64, "\n")),
                             ),
                         ],
                     ),
@@ -464,11 +456,10 @@ class Aggregator
             );
         }
 
-        /** @var string $this->signAlg */
-        $key = PrivateKey::fromFile($this->signKey, $this->signKeyPass);
         $signer = (new SignatureAlgorithmFactory())->getAlgorithm(
+            /** @var string $this->signAlg */
             $this->signAlg,
-            $key,
+            $this->signKey,
         );
 
         $element->sign($signer, C::C14N_EXCLUSIVE_WITHOUT_COMMENTS, $keyInfo);
@@ -479,9 +470,9 @@ class Aggregator
      * Recursively browse the children of an EntitiesDescriptor element looking for EntityDescriptor elements, and
      * return an array containing all of them.
      *
-     * @param \SAML2\XML\md\EntitiesDescriptor $entity The source EntitiesDescriptor that holds the entities to extract.
+     * @param \SimpleSAML\SAML2\XML\md\EntitiesDescriptor $entity The source EntitiesDescriptor that holds the entities to extract.
      *
-     * @return array An array containing all the EntityDescriptors found.
+     * @return array<\SimpleSAML\SAML2\XML\md\EntityDescriptor> An array containing all the EntityDescriptors found.
      */
     private static function extractEntityDescriptors(EntitiesDescriptor $entity): array
     {
@@ -628,7 +619,7 @@ class Aggregator
     /**
      * Set this aggregator to exclude a set of entities from the resulting aggregate.
      *
-     * @param array $entities The entity IDs of the entities to exclude.
+     * @param string[] $entities The entity IDs of the entities to exclude.
      */
     public function excludeEntities(array $entities): void
     {
@@ -649,7 +640,7 @@ class Aggregator
      * - 'saml20-sp': all SAML2.0-capable service providers.
      * - 'saml20-aa': all SAML2.0-capable attribute authorities.
      *
-     * @param array $set An array of the different roles and protocols to filter by.
+     * @param string[] $set An array of the different roles and protocols to filter by.
      */
     public function setFilters(array $set): void
     {
