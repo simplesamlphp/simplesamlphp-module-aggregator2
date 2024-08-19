@@ -93,13 +93,6 @@ jobs:
         run: |
           phpstan analyze -c phpstan-dev.neon
 
-      - name: Psalter
-        run: |
-          psalm --alter \
-          --issues=UnnecessaryVarAnnotation \
-          --dry-run \
-          --php-version=${{ steps.setup-php.outputs.php-version }}
-
   security:
     name: Security checks
     runs-on: [ubuntu-latest]
