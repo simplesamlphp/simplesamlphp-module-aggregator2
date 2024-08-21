@@ -1,6 +1,6 @@
 # Aggregator 2
 
-![Build Status](https://github.com/simplesamlphp/simplesamlphp-module-aggregator2/workflows/CI/badge.svg?branch=master)
+![Build Status](https://github.com/simplesamlphp/simplesamlphp-module-aggregator2/actions/workflows/php.yml/badge.svg)
 [![Coverage Status](https://codecov.io/gh/simplesamlphp/simplesamlphp-module-aggregator2/branch/master/graph/badge.svg)](https://codecov.io/gh/simplesamlphp/simplesamlphp-module-aggregator2)
 [![Type coverage](https://shepherd.dev/github/simplesamlphp/simplesamlphp-module-aggregator2/coverage.svg)](https://shepherd.dev/github/simplesamlphp/simplesamlphp-module-aggregator2)
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/simplesamlphp/simplesamlphp-module-aggregator2/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/simplesamlphp/simplesamlphp-module-aggregator2/?branch=master)
