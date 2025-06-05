@@ -317,7 +317,7 @@ class Aggregator
      * @param \DateTimeImmutable $expires  The timestamp the data expires.
      * @param string|null $tag  An extra tag that can be used to verify the validity of the cached data.
      */
-    public function addCacheItem(string $id, string $data, DateTimeImmutable $expires, string $tag = null): void
+    public function addCacheItem(string $id, string $data, DateTimeImmutable $expires, ?string $tag = null): void
     {
         $sysUtils = new Utils\System();
         $cacheFile = strval($this->cacheDirectory) . '/' . $id;
@@ -349,7 +349,7 @@ class Aggregator
      * @param string|null $tag  The tag that was passed to addCacheItem.
      * @return bool  TRUE if the data is valid, FALSE if not.
      */
-    public function isCacheValid(string $id, string $tag = null): bool
+    public function isCacheValid(string $id, ?string $tag = null): bool
     {
         $cacheFile = strval($this->cacheDirectory) . '/' . $id;
         if (!file_exists($cacheFile)) {
@@ -393,7 +393,7 @@ class Aggregator
      * @param string|null $tag  The tag that was passed to addCacheItem.
      * @return string|null  The cache item, or NULL if it isn't cached or if it is expired.
      */
-    public function getCacheItem(string $id, string $tag = null): ?string
+    public function getCacheItem(string $id, ?string $tag = null): ?string
     {
         if (!$this->isCacheValid($id, $tag)) {
             return null;
