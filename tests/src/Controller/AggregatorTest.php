@@ -100,7 +100,7 @@ class AggregatorTest extends TestCase
         $c = new Controller\Aggregator($this->config, $this->session);
 
         $this->expectException(Error\BadRequest::class);
-        $this->expectExceptionMessage("BADREQUEST('%REASON%' => 'Missing required parameter \"id\".')");
+        $this->expectExceptionMessage('{"errorCode":"BADREQUEST","%REASON%":"Missing required parameter \"id\"."}');
 
         $c->get($request);
     }
