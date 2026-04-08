@@ -58,13 +58,6 @@ class EntitySource
     protected string $url;
 
     /**
-     * The SSL CA file that should be used to validate the connection.
-     *
-     * @var string|null
-     */
-    protected ?string $sslCAFile;
-
-    /**
      * The certificate we should use to validate downloaded metadata.
      *
      * @var string|null
@@ -111,10 +104,6 @@ class EntitySource
         $this->aggregator = $aggregator;
 
         $this->url = $config->getString('url');
-        $this->sslCAFile = $config->getOptionalString('ssl.cafile', null);
-        if ($this->sslCAFile === null) {
-            $this->sslCAFile = $aggregator->getCAFile();
-        }
 
         $this->certificate = $config->getOptionalString('cert', null);
 
@@ -134,23 +123,18 @@ class EntitySource
         Logger::debug($this->logLoc . 'Downloading metadata from ' . var_export($this->url, true));
         $configUtils = new Utils\Config();
 
-        $context = ['ssl' => []];
-        if ($this->sslCAFile !== null) {
-            $context['ssl']['cafile'] = $configUtils->getCertPath($this->sslCAFile);
-            Logger::debug(
-                $this->logLoc . 'Validating https connection against CA certificate(s) found in ' .
-                var_export($context['ssl']['cafile'], true),
-            );
-            $context['ssl']['verify_peer'] = true;
-            $context['ssl']['CN_match'] = parse_url($this->url, PHP_URL_HOST);
-        }
+        $httpUtils = new Utils\HTTP();
+        $client = $httpUtils->createHttpClient();
+        $response = $client->request('GET', $this->url);
 
         try {
-            $httpUtils = new Utils\HTTP();
-            $data = $httpUtils->fetch($this->url, $context, false);
-        } catch (Error\Exception $e) {
-            Logger::error($this->logLoc . 'Unable to load metadata from ' . var_export($this->url, true));
+            // Trigger any issues that may occur during transport
+            $statusCode = $response->getStatusCode();
+        } catch (TransportException $e) {
+            Logger::error('Unable to load metadata from ' . var_export($this->url, true));
             return null;
+        } finally {
+            $data = $response->getContent();
         }
 
         $doc = DOMDocumentFactory::create();
