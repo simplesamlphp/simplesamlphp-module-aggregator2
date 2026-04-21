@@ -55,7 +55,7 @@ class AggregatorTest extends TestCase
                     'example' => [
                         'sources' => [
                             [
-                                'url' => 'tests/metadata/example.xml',
+                                'url' => 'file://tests/metadata/example.xml',
                             ],
                         ],
                     ],

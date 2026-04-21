@@ -37,6 +37,7 @@ class Aggregator
         'application/xml',
     ];
 
+
     /**
      * Controller constructor.
      *
