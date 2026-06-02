@@ -134,15 +134,15 @@ class EntitySource
         Logger::debug($this->logLoc . 'Downloading metadata from ' . var_export($this->url, true));
         $configUtils = new Utils\Config();
 
-        $context = ['ssl' => []];
+        $context = [];
         if ($this->sslCAFile !== null) {
-            $context['ssl']['cafile'] = $configUtils->getCertPath($this->sslCAFile);
+            $context['cafile'] = $configUtils->getCertPath($this->sslCAFile);
             Logger::debug(
                 $this->logLoc . 'Validating https connection against CA certificate(s) found in ' .
-                var_export($context['ssl']['cafile'], true),
+                var_export($context['cafile'], true),
             );
-            $context['ssl']['verify_peer'] = true;
-            $context['ssl']['CN_match'] = parse_url($this->url, PHP_URL_HOST);
+            $context['verify_peer'] = true;
+            $context['CN_match'] = parse_url($this->url, PHP_URL_HOST);
         }
 
         try {
